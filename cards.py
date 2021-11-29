@@ -2,9 +2,11 @@
 Classes for a standard deck of cards
 """
 import itertools
+import numpy as np
 from enum import Enum
 import random
 import math
+from types import SimpleNamespace
 
 BACKS = ["B", "R", "G", "Y", "K"]
 def get_next_back():
@@ -173,6 +175,11 @@ class CardGroup():
             return len(sets)
         else:
             raise "Unknown count_sets method: "+str(method)
+    def sort(self, method):
+        if method == CardGroup.RANKCOLOR:
+            self.cards.sort(key=lambda card: card.rank.get_shorthand()+str(card.get_color()))
+        else:
+            raise "Unknown sort method: "+method
     def calc_entropy(self, method):
         # See https://stackoverflow.com/questions/19434884/determining-how-well-a-deck-is-shuffled
         if method == self.RANKCOLOR:
@@ -188,8 +195,9 @@ class CardGroup():
 
 class Pile(CardGroup):
     cards = face_up = None
-    RIFFLE_SHUFFLE = 1
-    MULTI_QUICK_SHUFFLE = 2
+    PERFECT_SHUFFLE = 1
+    RIFFLE_SHUFFLE = 2
+    MULTI_QUICK_SHUFFLE = 3
     def __init__(self, cards = None, face_up = False):
         if cards == None: cards = list()
         self.cards = cards
@@ -223,18 +231,29 @@ class Pile(CardGroup):
                 card = self.pop()
                 if card == None:
                     raise "No more cards to deal!"
-                print(str(card)+" to pile "+str(p_idx))
+                #print(str(card)+" to pile "+str(p_idx))
                 piles[p_idx].push(card)
         return piles
-
+    def split(self, num_piles, face_up = False, include_current = False):
+        piles = []
+        cards_list = np.array_split(self.cards, num_piles)
+        for cards in cards_list:
+            piles.append(Pile(cards = list(cards), face_up = face_up))
+        if include_current:
+            self.cards = piles[0].cards
+            del piles[0]
+        else:
+            self.cards = []
+        return piles
     def shuffle(self, iterations = 7, precision = 10, method = RIFFLE_SHUFFLE):
-        #TODO Fail if pile is greater than 70 or so cards.
         if len(self.cards) > 100:
             raise "Can't shuffle that many. Specify another method."
-        if method == PERFECT_SHUFFLE:
+        if method == self.PERFECT_SHUFFLE:
             random.shuffle(self.cards)
-        elif method == RIFFLE_SHUFFLE:
+        elif method == self.RIFFLE_SHUFFLE:
             self.riffle_shuffle(iterations = iterations, precision = precision)
+        elif method == self.MULTI_QUICK_SHUFFLE:
+            self.multi_quick_shuffle(iterations = iterations, precision = precision)
         else:
             raise "Unknown shuffle method: "+method
     def riffle_shuffle(self, iterations = 7, precision = 10):
@@ -275,6 +294,63 @@ class Pile(CardGroup):
             cards.extend(half[0])
             cards.extend(half[1])
             self.cards = cards
+    '''
+    Custom shuffle method where multiple players shuffle many decks together
+    The method is to take a ~52 cards at a time shuffle once then trade half the cards for another set
+    '''
+    def multi_quick_shuffle(self, iterations = 1, precision = 10, players = None, num_players = None, seconds = 120):
+        if players and num_players:
+            raise "parameters players and num_players are mutually exclusive."
+        if len(self.cards) < 52:
+            raise "too few cards to shuffle"
+        if not players:
+            if not num_players: num_players = 4
+            players = []
+            for _ in range(num_players):
+                players.append(Player(precision = precision))
+        else:
+            num_players = len(players)
+        piles = self.split(num_players)
+        for player in players:
+            if hasattr(player, "multi_quick") and player.multi_quick:
+                raise "Unexpected multi_quick_pile"
+            player.multi_quick = SimpleNamespace()
+            player.multi_quick.pile = None
+        # iterate a second at a time 
+        while seconds > 0:
+            for player in players:
+                if player.multi_quick.pile == None or player.multi_quick.done_time >= seconds:
+                    old_pile = None
+                    if player.multi_quick.pile:
+                        if player.multi_quick.pile.count() < 30:
+                            old_pile = player.multi_quick.pile
+                            player.multi_quick.pile = None
+                        else:
+                            old_pile = player.multi_quick.pile.split(2, include_current = True)[0]
+                    if len(piles) > 0:
+                        new_pile = random.choice(piles)
+                        if player.multi_quick.pile:
+                            max_count = 40
+                        else:
+                            max_count = 80
+                        if new_pile.count() < max_count:
+                            piles.remove(new_pile) # take whole pile
+                        else:
+                            new_pile = new_pile.split(2, include_current = True)[0]
+                        if player.multi_quick.pile:
+                            player.multi_quick.pile.add(new_pile)
+                        else:
+                            player.multi_quick.pile = new_pile
+                        player.multi_quick.pile.shuffle(precision = player.precision, iterations = iterations, method = self.RIFFLE_SHUFFLE)
+                        player.multi_quick.done_time = seconds - (max(1, int(15 / player.speed))) - random.normalvariate(0, 3)
+                    # now that we got a new file (or not) return the old one
+                    if old_pile: piles.append(old_pile)
+            seconds -= 1
+        for player in players:
+            piles.append(player.multi_quick.pile)
+            player.multi_quick = None
+        for pile in piles:
+            self.add(pile)
 
     def __str__(self):
         s = ""
@@ -348,16 +424,18 @@ class Table():
             player.display_areas()
 
 class Player():
-    name = areas = precision = None
-    def __init__(self, name, table, precision = 7):
+    name = areas = precision = speed = None
+    def __init__(self, name = None, precision = 7, speed = 1.0):
         self.name = name
         self.precision = precision
+        self.speed = speed 
         self.area = []
     def add_area(self, area):
         if area in self.areas:
             raise "Area already associated with Player!"
         self.areas.append(area)
 
+'''
 #print(len(Deck("Green").cards))
 #print(Suit.CLUBS.value)
 #p = Pile(Deck("Green").cards)
@@ -379,7 +457,7 @@ print(ps[0].count_sets(method=CardGroup.RANKCOLOR))
 print(ps[1].count_sets(method=CardGroup.RANKCOLOR))
 print(ps[0].calc_entropy(method=CardGroup.RANKCOLOR))
 print(ps[1].calc_entropy(method=CardGroup.RANKCOLOR))
-
+#'''
 '''
 table = Table()
 area = PlayingArea("Main")
@@ -388,4 +466,19 @@ area.append(Deck().get_pile())
 #area.display()
 table.add_area(area)
 table.display()
-'''
+#'''
+
+p = Deck().get_pile()
+p.add(Deck().get_pile())
+p.add(Deck().get_pile())
+p.add(Deck().get_pile())
+p.add(Deck().get_pile())
+p.sort(method = CardGroup.RANKCOLOR)
+#print(p.calc_entropy(method=CardGroup.RANKCOLOR))
+p.multi_quick_shuffle(seconds = 60 * 2)
+#print(p.cards)
+p2 = p.deal(num_piles=1, num_cards=54)[0]
+print(p2.calc_entropy(method=CardGroup.RANKCOLOR))
+p.sort(method = CardGroup.RANKCOLOR)
+p3 = p.deal(num_piles=1, num_cards=54)[0]
+print(p3.calc_entropy(method=CardGroup.RANKCOLOR))
