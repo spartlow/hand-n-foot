@@ -382,7 +382,7 @@ class Hand(CardGroup):
 
 class PlayingArea():
     groups = None
-    def __init__(self, table, name = None, groups = None):
+    def __init__(self, name = None, groups = None):
         self.name = name
         if groups == None: groups = list()
         self.groups = groups
@@ -412,6 +412,11 @@ class Table():
         if area in self.areas:
             raise "Area already on the table!"
         self.areas.append(area)
+    def get_area(self, name):
+        for area in areas:
+            if area.name == name:
+                return area
+            raise "Area not found: "+name
     def add_player(self, player):
         if player in self.players:
             raise "Player already at the table: "+str(player)
