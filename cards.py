@@ -221,7 +221,7 @@ class Pile(CardGroup):
                 piles[p_idx].push(card)
         return piles
 
-    def shuffle(self, iterations = 1, precision = 1):
+    def shuffle(self, iterations = 7, precision = 10):
         #random.shuffle(self.cards)
         half = [[],[]]
         if len(self.cards) < 2:
@@ -289,7 +289,7 @@ class Hand(CardGroup):
 
 class PlayingArea():
     groups = None
-    def __init__(self, name = None, groups = None):
+    def __init__(self, table, name = None, groups = None):
         self.name = name
         if groups == None: groups = list()
         self.groups = groups
@@ -329,6 +329,17 @@ class Table():
         for player in self.players:
             print(player.name+":")
             player.display_areas()
+
+class Player():
+    name = areas = precision = None
+    def __init__(self, name, table, precision = 7):
+        self.name = name
+        self.precision = precision
+        self.area = []
+    def add_area(self, area):
+        if area in self.areas:
+            raise "Area already associated with Player!"
+        self.areas.append(area)
 
 #print(len(Deck("Green").cards))
 #print(Suit.CLUBS.value)
