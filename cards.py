@@ -188,6 +188,8 @@ class CardGroup():
 
 class Pile(CardGroup):
     cards = face_up = None
+    RIFFLE_SHUFFLE = 1
+    MULTI_QUICK_SHUFFLE = 2
     def __init__(self, cards = None, face_up = False):
         if cards == None: cards = list()
         self.cards = cards
@@ -204,7 +206,11 @@ class Pile(CardGroup):
     def push(self, card):
         self.cards.append(card)
     def add(self, cards):
-        self.cards.extend(cards)
+        if isinstance(cards, CardGroup):
+            self.cards.extend(cards.cards)
+            cards.cards = []
+        else:
+            self.cards.extend(cards)
     def flip(self):
         self.face_up = not self.face_up
         self.cards.reverse()
@@ -221,8 +227,19 @@ class Pile(CardGroup):
                 piles[p_idx].push(card)
         return piles
 
-    def shuffle(self, iterations = 7, precision = 10):
-        #random.shuffle(self.cards)
+    def shuffle(self, iterations = 7, precision = 10, method = RIFFLE_SHUFFLE):
+        #TODO Fail if pile is greater than 70 or so cards.
+        if len(self.cards) > 100:
+            raise "Can't shuffle that many. Specify another method."
+        if method == PERFECT_SHUFFLE:
+            random.shuffle(self.cards)
+        elif method == RIFFLE_SHUFFLE:
+            self.riffle_shuffle(iterations = iterations, precision = precision)
+        else:
+            raise "Unknown shuffle method: "+method
+    def riffle_shuffle(self, iterations = 7, precision = 10):
+        if len(self.cards) > 100:
+            raise "Can't riffle shuffle that many. Specify another method."
         half = [[],[]]
         if len(self.cards) < 2:
             return
