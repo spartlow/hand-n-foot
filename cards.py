@@ -342,7 +342,8 @@ class Pile(CardGroup):
                         else:
                             player.multi_quick.pile = new_pile
                         player.multi_quick.pile.shuffle(precision = player.precision, iterations = iterations, method = self.RIFFLE_SHUFFLE)
-                        player.multi_quick.done_time = seconds - (max(1, int(15 / player.speed))) - random.normalvariate(0, 3)
+                        player.multi_quick.done_time = seconds - (max(1, int((5 + 10 * iterations) / player.speed))) \
+                            - random.normalvariate(0, 3)
                     # now that we got a new file (or not) return the old one
                     if old_pile: piles.append(old_pile)
             seconds -= 1
@@ -480,7 +481,7 @@ p.add(Deck().get_pile())
 p.add(Deck().get_pile())
 p.sort(method = CardGroup.RANKCOLOR)
 #print(p.calc_entropy(method=CardGroup.RANKCOLOR))
-p.multi_quick_shuffle(seconds = 60 * 2)
+p.multi_quick_shuffle(seconds = 60 * 2, iterations = 1)
 #print(p.cards)
 p2 = p.deal(num_piles=1, num_cards=54)[0]
 print(p2.calc_entropy(method=CardGroup.RANKCOLOR))
