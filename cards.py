@@ -175,6 +175,16 @@ class CardGroup():
             return len(sets)
         else:
             raise "Unknown count_sets method: "+str(method)
+    def add(self, cards):
+        if isinstance(cards, CardGroup):
+            self.cards.extend(cards.cards)
+            cards.cards = []
+        else:
+            self.cards.extend(cards)
+    def push(self, card):
+        self.cards.append(card)
+    def pop(self):
+        return self.cards.pop()
     def sort(self, method):
         if method == CardGroup.RANKCOLOR:
             self.cards.sort(key=lambda card: card.rank.get_shorthand()+str(card.get_color()))
@@ -202,8 +212,6 @@ class Pile(CardGroup):
         if cards == None: cards = list()
         self.cards = cards
         self.face_up = face_up
-    def pop(self):
-        return self.cards.pop()
     def draw(self, number = 1):
         cards = []
         for i in range(number):
@@ -211,14 +219,6 @@ class Pile(CardGroup):
         return cards
     def peek(self):
         return self.cards[-1]
-    def push(self, card):
-        self.cards.append(card)
-    def add(self, cards):
-        if isinstance(cards, CardGroup):
-            self.cards.extend(cards.cards)
-            cards.cards = []
-        else:
-            self.cards.extend(cards)
     def flip(self):
         self.face_up = not self.face_up
         self.cards.reverse()
@@ -354,7 +354,7 @@ class Pile(CardGroup):
             self.add(pile)
 
     def __str__(self):
-        s = ""
+        s = "["
         if len(self.cards) == 0:
             s += "Empty"
         else:
@@ -362,7 +362,7 @@ class Pile(CardGroup):
                 s += str(self.peek())
             else:
                 s += str(self.peek().back)
-            s += " ("+str(self.count())+")"
+            s += "] ("+str(self.count())+")"
         return s
     def __repr__(self):
         return self.__str__()
@@ -380,6 +380,18 @@ class Hand(CardGroup):
     #    self.cards.sort()
     #def SUITRANK(card):
     #    return card.suit.value * 1 + card.rank.value * 1000
+    def __str__(self):
+        s = ""
+        if len(self.cards) == 0:
+            s += "[Empty"
+        else:
+            for card in self.cards:
+                #if self.face_up:
+                s += "["+card.get_shorthand()
+                #else:
+                #    s += "["+str(card.back)+"]"
+        s += "]"
+        return s
 
 class PlayingArea():
     groups = None
@@ -387,15 +399,29 @@ class PlayingArea():
         self.name = name
         if groups == None: groups = list()
         self.groups = groups
+    def combine_groups(self):
+        pile = Pile()
+        for group in self.groups:
+            pile.add(group)
+        self.groups = [pile]
+    def clear_groups(self):
+        pile = Pile()
+        for group in self.groups:
+            pile.add(group)
+        self.groups = []
+        return pile
     def append(self, group):
         if group in self.groups:
             raise "Group already in playing area!"
         self.groups.append(group)
     def display(self):
-        if self.name: print(self.name+":")
+        if self.name: print(self.name+":", end=" ")
         print("  ".join([str(x) for x in self.groups]))
-    def display_row(self, row_idx):
-        pass    
+    def transfer_cards(self, areas):
+        for area in areas:
+            self.groups.extend(area.groups)
+            area.groups = []
+#        Columns:
 #        table_data = [
 #            ['a', 'b', 'c'],
 #            ['aaaaaaaaaa', 'b', 'c'], 
@@ -414,14 +440,14 @@ class Table():
             raise "Area already on the table!"
         self.areas.append(area)
     def get_area(self, name):
-        for area in areas:
+        for area in self.areas:
             if area.name == name:
                 return area
-            raise "Area not found: "+name
+        raise "Area not found: "+name
     def add_player(self, player):
         if player in self.players:
             raise "Player already at the table: "+str(player)
-        self.player.append(player)
+        self.players.append(player)
     def display(self):
         for area in self.areas:
             area.display()
@@ -435,11 +461,19 @@ class Player():
         self.name = name
         self.precision = precision
         self.speed = speed 
-        self.area = []
+        self.areas = []
     def add_area(self, area):
         if area in self.areas:
             raise "Area already associated with Player!"
         self.areas.append(area)
+    def get_area(self, name):
+        for area in self.areas:
+            if area.name == name:
+                return area
+        raise "Player area not found: "+name
+    def display_areas(self):
+        for area in self.areas:
+            area.display()
 
 '''
 #print(len(Deck("Green").cards))
@@ -474,6 +508,7 @@ table.add_area(area)
 table.display()
 #'''
 
+'''
 p = Deck().get_pile()
 p.add(Deck().get_pile())
 p.add(Deck().get_pile())
@@ -488,3 +523,4 @@ print(p2.calc_entropy(method=CardGroup.RANKCOLOR))
 p.sort(method = CardGroup.RANKCOLOR)
 p3 = p.deal(num_piles=1, num_cards=54)[0]
 print(p3.calc_entropy(method=CardGroup.RANKCOLOR))
+'''
