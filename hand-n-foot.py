@@ -85,7 +85,8 @@ class HNFGame():
             player.get_area("hand").append(cards.Hand(random.choice(hands).cards))
             player.get_area("hand").groups[0].sort(method = cards.CardGroup.RANKCOLOR)
     def display(self):
-        
+        # TODO add player points
+        self.table.display()
 
         
     def start(self):
