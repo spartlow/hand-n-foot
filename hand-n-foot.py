@@ -17,9 +17,11 @@ class HNFRules():
     def __init__(self):
         pass
     def get_card_points(self, card):
-        if card.rank = Rank.JOKER:
+        if card.rank == cards.Rank.THREE and card.get_color == cards.Color.RED:
+            return -300
+        if card.rank == cards.Rank.JOKER:
             return 50
-        if card.rank = Rank.ACE or card.rank = Rank.TWO:
+        if card.rank == cards.Rank.ACE or card.rank == cards.Rank.TWO:
             return 20
         if card.is_face_card():
             return 10
@@ -82,7 +84,8 @@ class HNFGame():
             player.get_area("foot").groups[0].sort(method = cards.CardGroup.RANKCOLOR)
             player.get_area("hand").append(cards.Hand(random.choice(hands).cards))
             player.get_area("hand").groups[0].sort(method = cards.CardGroup.RANKCOLOR)
-
+    def display(self):
+        
 
         
     def start(self):
