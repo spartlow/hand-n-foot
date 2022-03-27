@@ -214,7 +214,7 @@ class Pile(CardGroup):
         self.face_up = face_up
     def draw(self, number = 1):
         cards = []
-        for i in range(number):
+        for _ in range(number):
             cards.append(self.pop())
         return cards
     def peek(self):
@@ -524,3 +524,8 @@ p.sort(method = CardGroup.RANKCOLOR)
 p3 = p.deal(num_piles=1, num_cards=54)[0]
 print(p3.calc_entropy(method=CardGroup.RANKCOLOR))
 '''
+
+p = Deck().get_pile()
+p.draw(11)
+p.draw(11)
+print(p)

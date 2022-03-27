@@ -13,6 +13,24 @@ class Strategy(SimpleNamespace):
     prefer_high = True
     draw_from = 'closest' # random, hand source, foot source
 
+class HNFRules():
+    def __init__(self):
+        pass
+    def get_card_points(self, card):
+        if card.rank = Rank.JOKER:
+            return 50
+        if card.rank = Rank.ACE or card.rank = Rank.TWO:
+            return 20
+        if card.is_face_card():
+            return 10
+        else:
+            return 5
+    def get_points(self, group):
+        points = 0
+        for card in group.cards:
+            points += self.get_card_points(card)
+        return points
+
 class HNFGame():
     def __init__(self):
         self.setup = False
@@ -41,23 +59,29 @@ class HNFGame():
             self.table.get_area("discard").append(deck.get_pile())
     def hand_setup(self):
         discard_area = self.table.get_area("discard")
+        draw_area = self.table.get_area("draw")
+        #discard_area.display()
+        #draw_area.display()
         # Move all cards into discard area
         for player in self.players:
             discard_area.transfer_cards(player.areas)
-        discard_area.transfer_cards([self.table.get_area("draw")])
+        discard_area.transfer_cards([draw_area])
         # Shuffle all cards together
         pile = discard_area.clear_groups()
         pile.multi_quick_shuffle(players = self.players)
-        draw_area = self.table.get_area("draw")
         for draw_pile in pile.split(num_piles=len(self.players)):
             draw_area.append(draw_pile)
+        #draw_area.display()
         for idx, player in enumerate(self.players):
             # Get hands from decks in front of other players
-            hands = []
-            hands.append(cards.Pile(cards = draw_area.groups[(idx - 1) % len(self.players)].draw(11)))
-            hands.append(cards.Pile(cards = draw_area.groups[(idx + 1) % len(self.players)].draw(11)))
+            hands = list()
+            hands.append(cards.Pile(cards = draw_area.groups[(idx - 1) % len(self.players)].draw(number = 11)))
+            hands.append(cards.Pile(cards = draw_area.groups[(idx + 1) % len(self.players)].draw(number = 11)))
+            #draw_area.display()
             player.get_area("foot").append(random.choice(hands))
+            player.get_area("foot").groups[0].sort(method = cards.CardGroup.RANKCOLOR)
             player.get_area("hand").append(cards.Hand(random.choice(hands).cards))
+            player.get_area("hand").groups[0].sort(method = cards.CardGroup.RANKCOLOR)
 
 
         
@@ -70,6 +94,8 @@ g.add_player(cards.Player("J", precision=5, speed=1.2), Strategy())
 g.add_player(cards.Player("S", precision=10, speed=1), Strategy())
 g.add_player(cards.Player("L", precision=7, speed=1), Strategy())
 g.add_player(cards.Player("A", precision=15, speed=.9), Strategy())
+#g.game_setup()
+#g.hand_setup()
 g.start()
 g.table.display()
 
