@@ -16,6 +16,27 @@ class Strategy(SimpleNamespace):
 class HNFRules():
     def __init__(self):
         pass
+    @classmethod
+    def round_starting_points(cls, round):
+        return list(0, 50, 100, 150)[round]
+
+class HNFGame():
+    def __init__(self):
+        self.setup = False
+        self.players = []
+        self.round = 0
+        #self.decks = []
+        #self.piles = []
+        #self.table = cards.Table()
+        self.table = cards.Table()
+    def add_player(self, player, strategy):
+        player.strategy = strategy
+        self.players.append(player)
+        player.add_area(cards.PlayingArea(name="complete"))
+        player.add_area(cards.PlayingArea(name="down"))
+        player.add_area(cards.PlayingArea(name="hand"))
+        player.add_area(cards.PlayingArea(name="foot"))
+        self.table.add_player(player)
     def get_card_points(self, card):
         if card.rank == cards.Rank.THREE and card.get_color == cards.Color.RED:
             return -300
@@ -32,22 +53,22 @@ class HNFRules():
         for card in group.cards:
             points += self.get_card_points(card)
         return points
+    def get_player_score(self, player):
+        score = 0
+        for group in player.get_area("complete").groups:
+            score += self.get_points(group)
+            if group.hnf_pure == True:
+                score += 300
+            else:
+                score += 100
+        for group in player.get_area("down").groups:
+            score += self.get_points(group)
+        for group in player.get_area("hand").groups:
+            score -= self.get_points(group)
+        for group in player.get_area("foot").groups:
+            score -= self.get_points(group)
+        return score
 
-class HNFGame():
-    def __init__(self):
-        self.setup = False
-        self.players = []
-        #self.decks = []
-        #self.piles = []
-        #self.table = cards.Table()
-        self.table = cards.Table()
-    def add_player(self, player, strategy):
-        player.strategy = strategy
-        self.players.append(player)
-        player.add_area(cards.PlayingArea(name="down"))
-        player.add_area(cards.PlayingArea(name="hand"))
-        player.add_area(cards.PlayingArea(name="foot"))
-        self.table.add_player(player)
     def game_setup(self):
         if self.setup:
             return
@@ -86,9 +107,11 @@ class HNFGame():
             player.get_area("hand").groups[0].sort(method = cards.CardGroup.RANKCOLOR)
     def display(self):
         # TODO add player points
+        for player in self.players:
+            print(player.name+": "+str(self.get_player_score(player)))
+        print("")
         self.table.display()
 
-        
     def start(self):
         self.game_setup()
         self.hand_setup()
@@ -101,7 +124,4 @@ g.add_player(cards.Player("A", precision=15, speed=.9), Strategy())
 #g.game_setup()
 #g.hand_setup()
 g.start()
-g.table.display()
-
-
-    
+g.display()

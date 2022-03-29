@@ -68,7 +68,7 @@ class Rank(Enum):
     def get_shorthand(self):
         return self._get_shorthands()[self.value - 1]
     def is_face_card(self):
-        if self.rank.value >= self.JACK and self.rank.value <= self.KING: # Jokers are not considered face cards
+        if self.value >= self.JACK.value and self.value <= self.KING.value: # Jokers are not considered face cards
             return True
         else:
             return False 
