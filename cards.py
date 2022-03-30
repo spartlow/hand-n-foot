@@ -71,7 +71,7 @@ class Rank(Enum):
         if self.value >= self.JACK.value and self.value <= self.KING.value: # Jokers are not considered face cards
             return True
         else:
-            return False 
+            return False
     def __repr__(self):
         return self.name+"!"
     def __str__(self):
@@ -135,7 +135,7 @@ class Card:
             else:
                 code += self.rank.value + 1 #skip the "Knight" card
         print(code)
-        return chr(code) 
+        return chr(code)
     @classmethod
     def parse(cls, shorthand, back = ""):
         return cls(Rank.parse(shorthand[0]), Suit.parse(shorthand[1]), back)
@@ -150,7 +150,7 @@ class Deck:
             back = get_next_back()
         self.back = back
         self.cards = []
-        for r in itertools.product([e for e in Rank], [e for e in Suit]): 
+        for r in itertools.product([e for e in Rank], [e for e in Suit]):
             if r[0] is not Rank.JOKER and r[1] is not Suit.BLACK and r[1] is not Suit.RED:
                 self.cards.append(Card(r[0], r[1], self.back))
         self.cards.append(Card(Rank.JOKER, Suit.BLACK, self.back))
@@ -166,15 +166,19 @@ class CardGroup():
         return len(self.cards)
     def __str__(self):
         return str(self)
-    def count_sets(self, method):
+    def get_melds(self, method):
         if method == self.RANKCOLOR:
-            sets = set()
+            melds = {}
             for card in self.cards:
-                sets.add(card.rank.get_shorthand()+str(card.get_color()))
-            print(sets)
-            return len(sets)
+                meld_type = card.rank.get_shorthand() + str(card.get_color())
+                if meld_type not in melds:
+                    melds[meld_type] = []
+                melds[meld_type].append(card)
+            return list(melds.values)
         else:
-            raise "Unknown count_sets method: "+str(method)
+            raise "Unknown get_sets method: "+str(method)
+    def count_melds(self, method):
+        return len(self.get_melds(method))
     def add(self, cards):
         if isinstance(cards, CardGroup):
             self.cards.extend(cards.cards)
@@ -193,7 +197,7 @@ class CardGroup():
     def calc_entropy(self, method):
         # See https://stackoverflow.com/questions/19434884/determining-how-well-a-deck-is-shuffled
         if method == self.RANKCOLOR:
-            num_sets = self.count_sets(method=method)
+            num_sets = self.count_melds(method=method)
             print(num_sets)
             min_sets = 1 #math.ceil(self.count() / 2)
             max_sets = min(28, self.count())
@@ -316,7 +320,7 @@ class Pile(CardGroup):
                 raise "Unexpected multi_quick_pile"
             player.multi_quick = SimpleNamespace()
             player.multi_quick.pile = None
-        # iterate a second at a time 
+        # iterate a second at a time
         while seconds > 0:
             for player in players:
                 if player.multi_quick.pile == None or player.multi_quick.done_time >= seconds:
@@ -424,7 +428,7 @@ class PlayingArea():
 #        Columns:
 #        table_data = [
 #            ['a', 'b', 'c'],
-#            ['aaaaaaaaaa', 'b', 'c'], 
+#            ['aaaaaaaaaa', 'b', 'c'],
 #            ['a', 'bbbbbbbbbb', 'c']
 #        ]
 #        for row in table_data:
@@ -460,7 +464,7 @@ class Player():
     def __init__(self, name = None, precision = 7, speed = 1.0):
         self.name = name
         self.precision = precision
-        self.speed = speed 
+        self.speed = speed
         self.areas = []
     def add_area(self, area):
         if area in self.areas:
@@ -493,8 +497,8 @@ print(p.calc_entropy(method=CardGroup.RANKCOLOR))
 #print(Card.parse("AH"))
 ps = p.deal(2, 3, face_up=True)
 print(ps)
-print(ps[0].count_sets(method=CardGroup.RANKCOLOR))
-print(ps[1].count_sets(method=CardGroup.RANKCOLOR))
+print(ps[0].count_melds(method=CardGroup.RANKCOLOR))
+print(ps[1].count_melds(method=CardGroup.RANKCOLOR))
 print(ps[0].calc_entropy(method=CardGroup.RANKCOLOR))
 print(ps[1].calc_entropy(method=CardGroup.RANKCOLOR))
 #'''

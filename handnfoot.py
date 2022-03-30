@@ -18,7 +18,7 @@ class HNFRules():
         pass
     @classmethod
     def round_starting_points(cls, round):
-        return list(0, 50, 100, 150)[round]
+        return [50, 75, 100, 150][round - 1]
 
 class HNFGame():
     def __init__(self):
@@ -49,8 +49,14 @@ class HNFGame():
         else:
             return 5
     def get_points(self, group):
+        if isinstance(group, cards.CardGroup):
+            c = group.cards
+        elif isinstance(group, 'list'):
+            c = group
+        else:
+            raise TypeError("Unexpected get_points type: "+type(group))
         points = 0
-        for card in group.cards:
+        for card in c:
             points += self.get_card_points(card)
         return points
     def get_player_score(self, player):
@@ -80,7 +86,10 @@ class HNFGame():
             deck = cards.Deck()
             #self.decks.append(deck)
             self.table.get_area("discard").append(deck.get_pile())
-    def hand_setup(self):
+    def round_setup(self):
+        self.round += 1
+        if self.round > 4:
+            raise ValueError("Too many rounds")
         discard_area = self.table.get_area("discard")
         draw_area = self.table.get_area("draw")
         #discard_area.display()
@@ -106,15 +115,48 @@ class HNFGame():
             player.get_area("hand").append(cards.Hand(random.choice(hands).cards))
             player.get_area("hand").groups[0].sort(method = cards.CardGroup.RANKCOLOR)
     def display(self):
-        # TODO add player points
         for player in self.players:
             print(player.name+": "+str(self.get_player_score(player)))
         print("")
         self.table.display()
-
+    def play_turn(self, player):
+        # draw
+        # add to down area melds and complete piles
+        # add new melds
+        # take foot and repeat
+        # make piles
+        # discard
+        pass # TODO
+    def draw(self, player):
+        # select pile
+        pile_idx = self.players.index(player)
+        draw_area = self.table.get_area("draw")
+        cards = []
+        while(len(cards) < 2):
+            draw_pile = draw_area.groups[(pile_idx ) % len(draw_area.groups)]
+            cards.extend(draw_pile.draw(number = 2 - len(cards)))
+            pile_idx += 1
+            if pile_idx > len(draw_area.groups):
+                raise(ValueError("Can't find card"))
+        player.get_area("hand").add(cards)
+    def get_ready_melds(self, player):
+        melds = player.get_area("hand")[0].get_melds(cards.CardGroup.RANKCOLOR)
+        ready = []
+        for meld in melds:
+            if len(meld) >= 3:
+                ready.append(meld)
+        return ready
+    def can_lay_down(self, player):
+        melds = self.get_ready_melds(player)
+        points = 0
+        for meld in melds:
+            points += self.get_points(meld)
+        if points > HNFRules.round_starting_points(self.round):
+            return True
+        return False
     def start(self):
         self.game_setup()
-        self.hand_setup()
+        self.round_setup()
 
 g = HNFGame()
 g.add_player(cards.Player("J", precision=5, speed=1.2), Strategy())
@@ -122,6 +164,6 @@ g.add_player(cards.Player("S", precision=10, speed=1), Strategy())
 g.add_player(cards.Player("L", precision=7, speed=1), Strategy())
 g.add_player(cards.Player("A", precision=15, speed=.9), Strategy())
 #g.game_setup()
-#g.hand_setup()
+#g.round_setup()
 g.start()
 g.display()
