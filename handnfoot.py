@@ -1,7 +1,7 @@
 """
   Simulate Hand and Foot card game
 """
-import cards
+import cardtable
 from types import SimpleNamespace
 import random
 
@@ -28,28 +28,28 @@ class HNFGame():
         #self.decks = []
         #self.piles = []
         #self.table = cards.Table()
-        self.table = cards.Table()
+        self.table = cardtable.Table()
     def add_player(self, player, strategy):
         player.strategy = strategy
         self.players.append(player)
-        player.add_area(cards.PlayingArea(name="complete"))
-        player.add_area(cards.PlayingArea(name="down"))
-        player.add_area(cards.PlayingArea(name="hand"))
-        player.add_area(cards.PlayingArea(name="foot"))
+        player.add_area(cardtable.PlayingArea(name="complete"))
+        player.add_area(cardtable.PlayingArea(name="down"))
+        player.add_area(cardtable.PlayingArea(name="hand"))
+        player.add_area(cardtable.PlayingArea(name="foot"))
         self.table.add_player(player)
     def get_card_points(self, card):
-        if card.rank == cards.Rank.THREE and card.get_color == cards.Color.RED:
+        if card.rank == cardtable.Rank.THREE and card.get_color == cardtable.Color.RED:
             return -300
-        if card.rank == cards.Rank.JOKER:
+        if card.rank == cardtable.Rank.JOKER:
             return 50
-        if card.rank == cards.Rank.ACE or card.rank == cards.Rank.TWO:
+        if card.rank == cardtable.Rank.ACE or card.rank == cardtable.Rank.TWO:
             return 20
         if card.is_face_card():
             return 10
         else:
             return 5
     def get_points(self, group):
-        if isinstance(group, cards.CardGroup):
+        if isinstance(group, cardtable.CardGroup):
             c = group.cards
         elif isinstance(group, 'list'):
             c = group
@@ -80,10 +80,10 @@ class HNFGame():
             return
         print("Setting up game")
         self.setup = True
-        self.table.add_area(cards.PlayingArea(name="discard"))
-        self.table.add_area(cards.PlayingArea(name="draw"))
+        self.table.add_area(cardtable.PlayingArea(name="discard"))
+        self.table.add_area(cardtable.PlayingArea(name="draw"))
         for _ in range(len(self.players) + 1):
-            deck = cards.Deck()
+            deck = cardtable.Deck()
             #self.decks.append(deck)
             self.table.get_area("discard").append(deck.get_pile())
     def round_setup(self):
@@ -107,13 +107,13 @@ class HNFGame():
         for idx, player in enumerate(self.players):
             # Get hands from decks in front of other players
             hands = list()
-            hands.append(cards.Pile(cards = draw_area.groups[(idx - 1) % len(self.players)].draw(number = 11)))
-            hands.append(cards.Pile(cards = draw_area.groups[(idx + 1) % len(self.players)].draw(number = 11)))
+            hands.append(cardtable.Pile(cards = draw_area.groups[(idx - 1) % len(self.players)].draw(number = 11)))
+            hands.append(cardtable.Pile(cards = draw_area.groups[(idx + 1) % len(self.players)].draw(number = 11)))
             #draw_area.display()
             player.get_area("foot").append(hands.pop(random.randrange(len(hands))))
-            player.get_area("foot").groups[0].sort(method = cards.CardGroup.RANKCOLOR)
-            player.get_area("hand").append(cards.Hand(hands.pop().cards))
-            player.get_area("hand").groups[0].sort(method = cards.CardGroup.RANKCOLOR)
+            player.get_area("foot").groups[0].sort(method = cardtable.CardGroup.RANKCOLOR)
+            player.get_area("hand").append(cardtable.Hand(hands.pop().cards))
+            player.get_area("hand").groups[0].sort(method = cardtable.CardGroup.RANKCOLOR)
     def display(self):
         for player in self.players:
             print(player.name+": "+str(self.get_player_score(player)))
@@ -121,6 +121,7 @@ class HNFGame():
         self.table.display()
     def play_turn(self, player):
         # draw
+        player.draw()
         # add to down area melds and complete piles
         # add new melds
         # take foot and repeat
@@ -139,8 +140,9 @@ class HNFGame():
             if pile_idx > len(draw_area.groups):
                 raise(ValueError("Can't find card"))
         player.get_area("hand").groups[0].add(cards)
+        player.get_area("hand").groups[0].sort(method = cardtable.CardGroup.RANKCOLOR)
     def get_ready_melds(self, player):
-        melds = player.get_area("hand").groups[0].get_melds(cards.CardGroup.RANKCOLOR)
+        melds = player.get_area("hand").groups[0].get_melds(cardtable.CardGroup.RANKCOLOR)
         ready = []
         for meld in melds:
             if len(meld) >= 3:
@@ -159,10 +161,10 @@ class HNFGame():
         self.round_setup()
 
 g = HNFGame()
-g.add_player(cards.Player("J", precision=5, speed=1.2), Strategy())
-g.add_player(cards.Player("S", precision=10, speed=1), Strategy())
-g.add_player(cards.Player("L", precision=7, speed=1), Strategy())
-g.add_player(cards.Player("A", precision=15, speed=.9), Strategy())
+g.add_player(cardtable.Player("J", precision=5, speed=1.2), Strategy())
+g.add_player(cardtable.Player("S", precision=10, speed=1), Strategy())
+g.add_player(cardtable.Player("L", precision=7, speed=1), Strategy())
+g.add_player(cardtable.Player("A", precision=15, speed=.9), Strategy())
 #g.game_setup()
 #g.round_setup()
 g.start()
