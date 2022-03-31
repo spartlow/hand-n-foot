@@ -110,9 +110,9 @@ class HNFGame():
             hands.append(cards.Pile(cards = draw_area.groups[(idx - 1) % len(self.players)].draw(number = 11)))
             hands.append(cards.Pile(cards = draw_area.groups[(idx + 1) % len(self.players)].draw(number = 11)))
             #draw_area.display()
-            player.get_area("foot").append(random.choice(hands))
+            player.get_area("foot").append(hands.pop(random.randrange(len(hands))))
             player.get_area("foot").groups[0].sort(method = cards.CardGroup.RANKCOLOR)
-            player.get_area("hand").append(cards.Hand(random.choice(hands).cards))
+            player.get_area("hand").append(cards.Hand(hands.pop().cards))
             player.get_area("hand").groups[0].sort(method = cards.CardGroup.RANKCOLOR)
     def display(self):
         for player in self.players:
@@ -138,9 +138,9 @@ class HNFGame():
             pile_idx += 1
             if pile_idx > len(draw_area.groups):
                 raise(ValueError("Can't find card"))
-        player.get_area("hand").add(cards)
+        player.get_area("hand").groups[0].add(cards)
     def get_ready_melds(self, player):
-        melds = player.get_area("hand")[0].get_melds(cards.CardGroup.RANKCOLOR)
+        melds = player.get_area("hand").groups[0].get_melds(cards.CardGroup.RANKCOLOR)
         ready = []
         for meld in melds:
             if len(meld) >= 3:
@@ -166,4 +166,8 @@ g.add_player(cards.Player("A", precision=15, speed=.9), Strategy())
 #g.game_setup()
 #g.round_setup()
 g.start()
-g.display()
+#g.display()
+
+g.players[0].display()
+g.draw(player = g.players[0])
+g.players[0].display()

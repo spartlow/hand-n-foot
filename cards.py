@@ -456,8 +456,7 @@ class Table():
         for area in self.areas:
             area.display()
         for player in self.players:
-            print(player.name+":")
-            player.display_areas()
+            player.display()
 
 class Player():
     name = areas = precision = speed = None
@@ -475,6 +474,9 @@ class Player():
             if area.name == name:
                 return area
         raise "Player area not found: "+name
+    def display(self):
+            print(self.name+":")
+            self.display_areas()
     def display_areas(self):
         for area in self.areas:
             area.display()
