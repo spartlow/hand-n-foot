@@ -182,6 +182,12 @@ class Meld(list):
             raise ValueError("Unknown method "+method)
         return meld_type
     @classmethod
+    def cards_include_meld_type(cards = self.cards, meld_type = meld_type, method = method):
+        for card in cards:
+            if Meld.get_card_meld_type(card, method):
+                return True
+        return False
+    @classmethod
     def get_melds(cls, cards, method):
         if len(cards) == 0:
             return []
@@ -205,6 +211,8 @@ class CardGroup():
         return Meld.get_melds(cards = self.cards, method = method)
     def count_melds(self, method):
         return len(self.get_melds(method))
+    def includes_meld_type(self, meld_type, method):
+        return Meld.cards_include_meld_type(cards = self.cards, meld_type = meld_type, method = method)
     def add(self, cards):
         if isinstance(cards, CardGroup):
             self.cards.extend(cards.cards)
@@ -445,13 +453,18 @@ class PlayingArea():
         if group in self.groups:
             raise "Group already in playing area!"
         self.groups.append(group)
-    def display(self):
-        if self.name: print(self.name+":", end=" ")
-        print("  ".join([str(x) for x in self.groups]))
     def transfer_cards(self, areas):
         for area in areas:
             self.groups.extend(area.groups)
             area.groups = []
+    def includes_meld_type(self, meld_type, method):
+        for group in self.groups:
+            if group.includes_meld_type(meld_type = meld_type, method = method):
+                return True
+        return False
+    def display(self):
+        if self.name: print(self.name+":", end=" ")
+        print("  ".join([str(x) for x in self.groups]))
 #        Columns:
 #        table_data = [
 #            ['a', 'b', 'c'],
@@ -460,6 +473,7 @@ class PlayingArea():
 #        ]
 #        for row in table_data:
 #            print("{: >20} {: >20} {: >20}".format(*row))
+
 
 class Table():
     areas = players = None

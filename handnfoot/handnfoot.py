@@ -131,9 +131,11 @@ class HNFGame():
         self.draw(player)
         # add to down area melds and complete piles
         if player.hnf_is_down:
-            # need area.includes_meld
+            # TODO for each meld > 3 and if down area.includes_meld then play
             pass #TODO
         else:
+            if self.can_lay_down(player):
+                pass #TODO
             pass #TODO
         # add new melds
         # take foot and repeat
@@ -188,6 +190,7 @@ class HNFGame():
         pass #TODO
     def get_ready_melds(self, player):
         melds = player.get_hand().get_melds(cardtable.CardGroup.RANKCOLOR)
+        # TODO need to take into account wilds. They can't form meld
         ready = []
         for meld in melds:
             if len(meld) >= 3:
@@ -195,6 +198,7 @@ class HNFGame():
         return ready
     def can_lay_down(self, player):
         melds = self.get_ready_melds(player)
+        # TODO need to take into account wilds
         points = 0
         for meld in melds:
             points += self.get_points(meld)
