@@ -182,9 +182,9 @@ class Meld(list):
             raise ValueError("Unknown method "+method)
         return meld_type
     @classmethod
-    def cards_include_meld_type(cards, meld_type, method):
+    def cards_include_meld_type(cls, cards, meld_type, method):
         for card in cards:
-            if Meld.get_card_meld_type(card, method):
+            if Meld.get_card_meld_type(card, method) == meld_type:
                 return True
         return False
     @classmethod

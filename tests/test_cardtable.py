@@ -26,3 +26,43 @@ def test_meld_RankColor():
     assert melds[0].get_type() == "ABLACK"
     assert melds[1].get_type() == "ARED"
     assert melds[2].get_type() == "2RED"
+
+def test_includes_meld():
+    # Setup
+    method = cardtable.Meld.RANKCOLOR
+    cards = [cardtable.Card.parse("4H"),
+        cardtable.Card.parse("9S"),
+        cardtable.Card.parse("JD"),
+        cardtable.Card.parse("9C")]
+    similar = [cardtable.Card.parse("4D"),
+        cardtable.Card.parse("JH")]
+    dissimilar = [cardtable.Card.parse("2H"),
+        cardtable.Card.parse("9H"),
+        cardtable.Card.parse("JC")]
+    hand = cardtable.Hand(cards = cards)
+
+    # Test CardGroup includes_meld_type
+    for card in cards:
+        meld_type = meld_type = card.get_meld_type(method = method)
+        assert hand.includes_meld_type(meld_type = meld_type, method = method)
+    for card in similar:
+        meld_type = meld_type = card.get_meld_type(method = method)
+        assert hand.includes_meld_type(meld_type = meld_type, method = method)
+    for card in dissimilar:
+        meld_type = meld_type = card.get_meld_type(method = method)
+        assert not hand.includes_meld_type(meld_type = meld_type, method = method)
+
+    # Test PlayingArea includes_meld_type
+    cards2 = [cardtable.Card.parse("5C")]
+    pile = cardtable.Pile(cards = cards2)
+    empty_pile = cardtable.Pile()
+    area = cardtable.PlayingArea(name="TestArea", groups = [hand, pile, empty_pile])
+    for card in cards:
+        meld_type = meld_type = card.get_meld_type(method = method)
+        assert area.includes_meld_type(meld_type = meld_type, method = method)
+    for card in cards2:
+        meld_type = meld_type = card.get_meld_type(method = method)
+        assert area.includes_meld_type(meld_type = meld_type, method = method)
+    for card in dissimilar:
+        meld_type = meld_type = card.get_meld_type(method = method)
+        assert not area.includes_meld_type(meld_type = meld_type, method = method)
