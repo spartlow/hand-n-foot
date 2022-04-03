@@ -182,7 +182,7 @@ class Meld(list):
             raise ValueError("Unknown method "+method)
         return meld_type
     @classmethod
-    def cards_include_meld_type(cards = self.cards, meld_type = meld_type, method = method):
+    def cards_include_meld_type(cards, meld_type, method):
         for card in cards:
             if Meld.get_card_meld_type(card, method):
                 return True
@@ -202,7 +202,6 @@ class Meld(list):
 
 class CardGroup():
     cards = None
-    RANKCOLOR = 1
     def count(self):
         return len(self.cards)
     def __str__(self):
@@ -224,13 +223,13 @@ class CardGroup():
     def pop(self):
         return self.cards.pop()
     def sort(self, method):
-        if method == CardGroup.RANKCOLOR:
+        if method == Meld.RANKCOLOR:
             self.cards.sort(key=lambda card: card.rank.get_shorthand()+str(card.get_color()))
         else:
             raise "Unknown sort method: "+method
     def calc_entropy(self, method):
         # See https://stackoverflow.com/questions/19434884/determining-how-well-a-deck-is-shuffled
-        if method == self.RANKCOLOR:
+        if method == Meld.RANKCOLOR:
             num_sets = self.count_melds(method=method)
             print(num_sets)
             min_sets = 1 #math.ceil(self.count() / 2)
@@ -536,19 +535,19 @@ class Player():
 #print(p)
 p = Deck().get_pile()
 #print(p.cards)
-print(p.calc_entropy(method=CardGroup.RANKCOLOR))
+print(p.calc_entropy(method=Meld.RANKCOLOR))
 p.shuffle(iterations=7, precision=10)
-print(p.calc_entropy(method=CardGroup.RANKCOLOR))
+print(p.calc_entropy(method=Meld.RANKCOLOR))
 #print(p.cards)
 #print(p)
 #print(Rank.parse("3"))
 #print(Card.parse("AH"))
 ps = p.deal(2, 3, face_up=True)
 print(ps)
-print(ps[0].count_melds(method=CardGroup.RANKCOLOR))
-print(ps[1].count_melds(method=CardGroup.RANKCOLOR))
-print(ps[0].calc_entropy(method=CardGroup.RANKCOLOR))
-print(ps[1].calc_entropy(method=CardGroup.RANKCOLOR))
+print(ps[0].count_melds(method=Meld.RANKCOLOR))
+print(ps[1].count_melds(method=Meld.RANKCOLOR))
+print(ps[0].calc_entropy(method=Meld.RANKCOLOR))
+print(ps[1].calc_entropy(method=Meld.RANKCOLOR))
 #'''
 '''
 table = Table()
@@ -566,15 +565,15 @@ p.add(Deck().get_pile())
 p.add(Deck().get_pile())
 p.add(Deck().get_pile())
 p.add(Deck().get_pile())
-p.sort(method = CardGroup.RANKCOLOR)
-#print(p.calc_entropy(method=CardGroup.RANKCOLOR))
+p.sort(method = Meld.RANKCOLOR)
+#print(p.calc_entropy(method=Meld.RANKCOLOR))
 p.multi_quick_shuffle(seconds = 60 * 2, iterations = 1)
 #print(p.cards)
 p2 = p.deal(num_piles=1, num_cards=54)[0]
-print(p2.calc_entropy(method=CardGroup.RANKCOLOR))
-p.sort(method = CardGroup.RANKCOLOR)
+print(p2.calc_entropy(method=Meld.RANKCOLOR))
+p.sort(method = Meld.RANKCOLOR)
 p3 = p.deal(num_piles=1, num_cards=54)[0]
-print(p3.calc_entropy(method=CardGroup.RANKCOLOR))
+print(p3.calc_entropy(method=Meld.RANKCOLOR))
 '''
 
 p = Deck().get_pile()
