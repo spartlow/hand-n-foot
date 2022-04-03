@@ -202,18 +202,7 @@ class CardGroup():
     def __str__(self):
         return str(self)
     def get_melds(self, method):
-        if len(self.cards) == 0:
-            return []
-        if method == self.RANKCOLOR:
-            melds = dict()
-            for card in self.cards:
-                meld_type = card.rank.get_shorthand() + str(card.get_color())
-                if meld_type not in melds:
-                    melds[meld_type] = []
-                melds[meld_type].append(card)
-            return list(melds.values())
-        else:
-            raise "Unknown get_sets method: "+str(method)
+        return Meld.get_melds(cards = self.cards, method = method)
     def count_melds(self, method):
         return len(self.get_melds(method))
     def add(self, cards):

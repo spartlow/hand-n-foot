@@ -51,6 +51,8 @@ class HNFGame():
     def get_points(self, group):
         if isinstance(group, cardtable.CardGroup):
             c = group.cards
+        elif isinstance(group, cardtable.Meld):
+            c = list(group)
         elif isinstance(group, 'list'):
             c = group
         else:
@@ -185,7 +187,7 @@ class HNFGame():
 
         pass #TODO
     def get_ready_melds(self, player):
-        melds = player.get_area("hand").groups[0].get_melds(cardtable.CardGroup.RANKCOLOR)
+        melds = player.get_hand().get_melds(cardtable.CardGroup.RANKCOLOR)
         ready = []
         for meld in melds:
             if len(meld) >= 3:
