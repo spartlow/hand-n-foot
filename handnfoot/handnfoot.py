@@ -44,7 +44,7 @@ class HNFGame():
             return 50
         if card.rank == cardtable.Rank.ACE or card.rank == cardtable.Rank.TWO:
             return 20
-        if card.is_face_card():
+        if card.is_face_card() or card.rank == cardtable.Rank.TEN:
             return 10
         else:
             return 5
@@ -90,6 +90,9 @@ class HNFGame():
         self.round += 1
         if self.round > 4:
             raise ValueError("Too many rounds")
+        for player in self.players:
+            player.hnf_in_foot = False
+            player.hnf_is_down = False
         discard_area = self.table.get_area("discard")
         draw_area = self.table.get_area("draw")
         #discard_area.display()
@@ -100,6 +103,7 @@ class HNFGame():
         discard_area.transfer_cards([draw_area])
         # Shuffle all cards together
         pile = discard_area.clear_groups()
+        discard_area.append(cardtable.Pile())
         pile.multi_quick_shuffle(players = self.players)
         for draw_pile in pile.split(num_piles=len(self.players)):
             draw_area.append(draw_pile)
@@ -120,13 +124,20 @@ class HNFGame():
         print("")
         self.table.display()
     def play_turn(self, player):
+        hand = player.get_hand()
         # draw
-        player.draw()
+        self.draw(player)
         # add to down area melds and complete piles
+        if player.hnf_is_down:
+            # need area.includes_meld
+            pass #TODO
+        else:
+            pass #TODO
         # add new melds
         # take foot and repeat
         # make piles
         # discard
+        self.discard(player)
         pass # TODO
     def draw(self, player):
         # select pile
@@ -139,8 +150,40 @@ class HNFGame():
             pile_idx += 1
             if pile_idx > len(draw_area.groups):
                 raise(ValueError("Can't find card"))
-        player.get_area("hand").groups[0].add(cards)
-        player.get_area("hand").groups[0].sort(method = cardtable.CardGroup.RANKCOLOR)
+        player.get_hand().add(cards)
+        player.get_hand().sort(method = cardtable.CardGroup.RANKCOLOR)
+    def get_card_desirability(self, strategy, card, meld_size):
+        """ Preference:
+                If have incomplete pile
+                Wild card (unless too many??)
+                If have complete pile (7+) -- how to account for wildcards in piles or potential wildcards?
+                If have ready meld (3-6)
+                If have pair (2)
+                If high card (or low if prefer low)
+                #TODO move to strategy
+        """
+        '''
+        if meld_size < 3:
+            desirability = meld_size * 1000
+            if strategy.prefer_high:
+                desirability +=
+        # '''
+        pass #TODO
+    def discard(self, player):
+        # Temp simple code
+        hand = player.get_hand()
+        if len(hand.cards) == 0:
+            raise ValueError("Can't discard from empty hand!")
+        melds = hand.get_melds(method = cardtable.CardGroup.RANKCOLOR)
+        melds.sort(key=len)
+        card = melds[0][0]
+        hand.remove(card)
+        self.table.get_area("discard").groups[0].push(card)
+        """
+        Get cards sorted by desirability (from strategy)
+        """
+
+        pass #TODO
     def get_ready_melds(self, player):
         melds = player.get_area("hand").groups[0].get_melds(cardtable.CardGroup.RANKCOLOR)
         ready = []
@@ -171,5 +214,5 @@ g.start()
 #g.display()
 
 g.players[0].display()
-g.draw(player = g.players[0])
+g.play_turn(player = g.players[0])
 g.players[0].display()

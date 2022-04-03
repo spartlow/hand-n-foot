@@ -95,7 +95,7 @@ class Card:
     def _parse(shorthand):
         shorthand = Suit.HEARTS
     def __repr__(self):
-        return str(self.back)+" "+str(self.rank)+" of "+str(self.suit)# +" is "+str(self.suit.get_color())
+        return (str(self.back)+" "+str(self.rank)+" of "+str(self.suit)).strip() # +" is "+str(self.suit.get_color())
     def get_shorthand(self):
         return self.rank.get_shorthand()+self.suit.get_shorthand()
     def is_face_card(self):
@@ -136,6 +136,8 @@ class Card:
                 code += self.rank.value + 1 #skip the "Knight" card
         print(code)
         return chr(code)
+    def get_meld_type(self, method):
+        return Meld.get_card_meld_type(self, method)
     @classmethod
     def parse(cls, shorthand, back = ""):
         return cls(Rank.parse(shorthand[0]), Suit.parse(shorthand[1]), back)
@@ -159,6 +161,27 @@ class Deck:
     def get_pile(self, face_up = False):
         return Pile(self.cards)
 
+class Meld(list):
+    RANKCOLOR = 1
+    def __init__(self, method, cards = []):
+        self.method = method
+        if cards:
+            super(Meld, self).__init__(cards)
+        else:
+            super(Meld, self).__init__()
+    def get_type(self):
+        if len(self):
+            return Meld.get_card_meld_type(card = self[0], method = self.method)
+        else:
+            return None
+    @classmethod
+    def get_card_meld_type(cls, card, method):
+        if method is cls.RANKCOLOR:
+            meld_type = card.rank.get_shorthand() + str(card.get_color())
+        else:
+            raise ValueError("Unknown method "+method)
+        return meld_type
+
 class CardGroup():
     cards = None
     RANKCOLOR = 1
@@ -167,14 +190,16 @@ class CardGroup():
     def __str__(self):
         return str(self)
     def get_melds(self, method):
+        if len(self.cards) == 0:
+            return []
         if method == self.RANKCOLOR:
-            melds = {}
+            melds = dict()
             for card in self.cards:
                 meld_type = card.rank.get_shorthand() + str(card.get_color())
                 if meld_type not in melds:
                     melds[meld_type] = []
                 melds[meld_type].append(card)
-            return list(melds.values)
+            return list(melds.values())
         else:
             raise "Unknown get_sets method: "+str(method)
     def count_melds(self, method):
@@ -379,7 +404,8 @@ class Hand(CardGroup):
     def add(self, cards):
         self.cards.extend(cards)
     def remove(self, card):
-        self.remove(card)
+        self.cards.remove(card)
+
     #def sort(self, method = SUITRANK):
     #    self.cards.sort()
     #def SUITRANK(card):
@@ -474,6 +500,11 @@ class Player():
             if area.name == name:
                 return area
         raise "Player area not found: "+name
+    def get_hand(self):
+        hand_area = self.get_area("hand")
+        if len(hand_area.groups) != 1:
+            raise ValueError("Expected one hand")
+        return hand_area.groups[0]
     def display(self):
             print(self.name+":")
             self.display_areas()
