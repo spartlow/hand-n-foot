@@ -143,7 +143,8 @@ class Card:
         return cls(Rank.parse(shorthand[0]), Suit.parse(shorthand[1]), back)
 
 """
-Defines a deck of cards
+Defines a deck of cards.
+For a group of cards, see Pile.
 """
 class Deck:
     back = cards = None
@@ -408,7 +409,7 @@ class Hand(CardGroup):
     cards = None
     def __init__(self, cards = None):
         if cards == None: cards = list()
-        self.cards = cards
+        self.cards = list(cards)
     def add(self, cards):
         self.cards.extend(cards)
     def remove(self, card):
@@ -418,6 +419,33 @@ class Hand(CardGroup):
     #    self.cards.sort()
     #def SUITRANK(card):
     #    return card.suit.value * 1 + card.rank.value * 1000
+    def __str__(self):
+        s = ""
+        if len(self.cards) == 0:
+            s += "[Empty"
+        else:
+            for card in self.cards:
+                #if self.face_up:
+                s += "["+card.get_shorthand()
+                #else:
+                #    s += "["+str(card.back)+"]"
+        s += "]"
+        return s
+
+"""
+A group of cards layed out so all can see them.
+Similar to a Hand but typically not private.
+"""
+class Fan(CardGroup):
+    cards = None
+    def __init__(self, cards = None, face_up = True):
+        if cards == None: cards = list()
+        self.cards = list(cards)
+        self.face_up = face_up
+    def add(self, cards):
+        self.cards.extend(cards)
+    def remove(self, card):
+        self.cards.remove(card)
     def __str__(self):
         s = ""
         if len(self.cards) == 0:
