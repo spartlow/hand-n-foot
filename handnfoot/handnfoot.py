@@ -117,9 +117,9 @@ class HNFGame():
             hands.append(cardtable.Pile(cards = draw_area.groups[(idx + 1) % len(self.players)].draw(number = 11)))
             #draw_area.display()
             player.get_area("foot").append(hands.pop(random.randrange(len(hands))))
-            player.get_area("foot").groups[0].sort(method = cardtable.CardGroup.RANKCOLOR)
+            player.get_area("foot").groups[0].sort(method = cardtable.Meld.RANKCOLOR)
             player.get_area("hand").append(cardtable.Hand(hands.pop().cards))
-            player.get_area("hand").groups[0].sort(method = cardtable.CardGroup.RANKCOLOR)
+            player.get_area("hand").groups[0].sort(method = cardtable.Meld.RANKCOLOR)
     def display(self):
         for player in self.players:
             print(player.name+": "+str(self.get_player_score(player)))
@@ -130,12 +130,15 @@ class HNFGame():
         # draw
         self.draw(player)
         # add to down area melds and complete piles
-        if player.hnf_is_down:
-            # TODO for each meld > 3 and if down area.includes_meld then play
+        if not player.hnf_is_down:
+            if self.can_lay_down(player):
+                melds = self.get_ready_melds(player)
+                for meld in melds:
+                    self.lay_down(player, cards = list(meld))
+                    pass #TODO
             pass #TODO
         else:
-            if self.can_lay_down(player):
-                pass #TODO
+            # TODO for each meld > 3 and if down area.includes_meld then play
             pass #TODO
         # add new melds
         # take foot and repeat
@@ -155,7 +158,12 @@ class HNFGame():
             if pile_idx > len(draw_area.groups):
                 raise(ValueError("Can't find card"))
         player.get_hand().add(cards)
-        player.get_hand().sort(method = cardtable.CardGroup.RANKCOLOR)
+        player.get_hand().sort(method = cardtable.Meld.RANKCOLOR)
+    def lay_down(self, player, cards):
+        hand = player.get_hand()
+        for card in cards:
+            hand.remove(card)
+        pass #TODO
     def get_card_desirability(self, strategy, card, meld_size):
         """ Preference:
                 If have incomplete pile
@@ -178,7 +186,7 @@ class HNFGame():
         hand = player.get_hand()
         if len(hand.cards) == 0:
             raise ValueError("Can't discard from empty hand!")
-        melds = hand.get_melds(method = cardtable.CardGroup.RANKCOLOR)
+        melds = hand.get_melds(method = cardtable.Meld.RANKCOLOR)
         melds.sort(key=len)
         card = melds[0][0]
         hand.remove(card)
@@ -189,7 +197,7 @@ class HNFGame():
 
         pass #TODO
     def get_ready_melds(self, player):
-        melds = player.get_hand().get_melds(cardtable.CardGroup.RANKCOLOR)
+        melds = player.get_hand().get_melds(cardtable.Meld.RANKCOLOR)
         # TODO need to take into account wilds. They can't form meld
         ready = []
         for meld in melds:
