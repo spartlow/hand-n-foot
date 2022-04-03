@@ -1,7 +1,10 @@
 """
 Classes for a standard deck of cards
 """
+from __future__ import annotations
+import typing
 import itertools
+from xmlrpc.client import Boolean
 import numpy as np
 from enum import Enum
 import random
@@ -17,9 +20,9 @@ get_next_back.back_idx = -1
 class Color(Enum):
     RED = 1
     BLACK = 2
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name+"!"
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 from enum import Enum
@@ -30,21 +33,21 @@ class Suit(Enum):
     CLUBS = 4
     BLACK = 5 # For Jokers
     RED = 6 # For Jokers
-    def _get_shorthands(self):
+    def _get_shorthands(self) -> str:
         return ["H", "D", "S", "C", "B", "R"]
-    def get_shorthand(self):
+    def get_shorthand(self) -> str:
         return self._get_shorthands()[self.value - 1]
-    def get_color(self):
+    def get_color(self) -> Color:
         return [Color.RED, Color.RED, Color.BLACK, Color.BLACK, Color.BLACK, Color.RED][self.value - 1]
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name+"!"
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
     @classmethod
-    def _shorthands(self):
+    def _shorthands(self) -> str:
         return ["H", "D", "S", "C", "B", "R"]
     @classmethod
-    def parse(cls, shorthand):
+    def parse(cls, shorthand) -> Suit:
         return cls(cls._shorthands().index(shorthand) + 1)
 
 from enum import Enum
@@ -63,24 +66,24 @@ class Rank(Enum):
     QUEEN = 12
     KING = 13
     JOKER = 14
-    def _get_shorthands(self):
+    def _get_shorthands(self) -> str:
         return ["A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "*"]
-    def get_shorthand(self):
+    def get_shorthand(self) -> str:
         return self._get_shorthands()[self.value - 1]
-    def is_face_card(self):
+    def is_face_card(self) -> Boolean:
         if self.value >= self.JACK.value and self.value <= self.KING.value: # Jokers are not considered face cards
             return True
         else:
             return False
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name+"!"
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
     @classmethod
-    def _shorthands(self):
+    def _shorthands(self) -> str:
         return ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "*"]
     @classmethod
-    def parse(cls, shorthand):
+    def parse(cls, shorthand) -> Rank:
         return cls(cls._shorthands().index(shorthand) + 1)
 
 """
@@ -94,15 +97,15 @@ class Card:
         self.back = back
     def _parse(shorthand):
         shorthand = Suit.HEARTS
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (str(self.back)+" "+str(self.rank)+" of "+str(self.suit)).strip() # +" is "+str(self.suit.get_color())
-    def get_shorthand(self):
+    def get_shorthand(self) -> str:
         return self.rank.get_shorthand()+self.suit.get_shorthand()
-    def is_face_card(self):
+    def is_face_card(self) -> Boolean:
         return self.rank.is_face_card()
-    def get_color(self):
+    def get_color(self) -> Color:
         return self.suit.get_color()
-    def count_eyes(self):
+    def count_eyes(self) -> int:
         if self.rank == Rank.JOKER:
             return 2
         elif self.is_face_card():
@@ -112,7 +115,7 @@ class Card:
         elif self.rank == Rank.JOKER:
             return 2
         return 0
-    def get_unicode(self):
+    def get_unicode(self) -> str:
         if self.suit == Suit.RED:
             if self.rank is not Rank.JOKER: raise "Unexpected rank for Suit.RED: "+self.rank
             code = int("F0BF")
@@ -136,10 +139,10 @@ class Card:
                 code += self.rank.value + 1 #skip the "Knight" card
         print(code)
         return chr(code)
-    def get_meld_type(self, method):
+    def get_meld_type(self, method) -> str:
         return Meld.get_card_meld_type(self, method)
     @classmethod
-    def parse(cls, shorthand, back = ""):
+    def parse(cls, shorthand, back = "") -> Card:
         return cls(Rank.parse(shorthand[0]), Suit.parse(shorthand[1]), back)
 
 """
@@ -159,7 +162,7 @@ class Deck:
         self.cards.append(Card(Rank.JOKER, Suit.BLACK, self.back))
         self.cards.append(Card(Rank.JOKER, Suit.RED, self.back))
         #print(self.cards)
-    def get_pile(self, face_up = False):
+    def get_pile(self, face_up = False) -> Pile:
         return Pile(self.cards)
 
 class Meld(list):
@@ -170,26 +173,26 @@ class Meld(list):
             super(Meld, self).__init__(cards)
         else:
             super(Meld, self).__init__()
-    def get_type(self):
+    def get_type(self) -> str:
         if len(self):
             return Meld.get_card_meld_type(card = self[0], method = self.method)
         else:
             return None
     @classmethod
-    def get_card_meld_type(cls, card, method):
+    def get_card_meld_type(cls, card, method) -> str:
         if method is cls.RANKCOLOR:
             meld_type = card.rank.get_shorthand() + str(card.get_color())
         else:
             raise ValueError("Unknown method "+method)
         return meld_type
     @classmethod
-    def cards_include_meld_type(cls, cards, meld_type, method):
+    def cards_include_meld_type(cls, cards, meld_type, method) -> Boolean:
         for card in cards:
             if Meld.get_card_meld_type(card, method) == meld_type:
                 return True
         return False
     @classmethod
-    def get_melds(cls, cards, method):
+    def get_melds(cls, cards, method) -> List['Meld']:
         if len(cards) == 0:
             return []
         melds = dict()
@@ -203,32 +206,32 @@ class Meld(list):
 
 class CardGroup():
     cards = None
-    def count(self):
+    def count(self) -> int:
         return len(self.cards)
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self)
-    def get_melds(self, method):
+    def get_melds(self, method) -> List['Meld']:
         return Meld.get_melds(cards = self.cards, method = method)
-    def count_melds(self, method):
+    def count_melds(self, method) -> int:
         return len(self.get_melds(method))
-    def includes_meld_type(self, meld_type, method):
+    def includes_meld_type(self, meld_type, method) -> Boolean:
         return Meld.cards_include_meld_type(cards = self.cards, meld_type = meld_type, method = method)
-    def add(self, cards):
+    def add(self, cards) -> None:
         if isinstance(cards, CardGroup):
             self.cards.extend(cards.cards)
             cards.cards = []
         else:
             self.cards.extend(cards)
-    def push(self, card):
+    def push(self, card) -> None:
         self.cards.append(card)
-    def pop(self):
+    def pop(self) -> Card:
         return self.cards.pop()
-    def sort(self, method):
+    def sort(self, method) -> None:
         if method == Meld.RANKCOLOR:
             self.cards.sort(key=lambda card: card.rank.get_shorthand()+str(card.get_color()))
         else:
             raise "Unknown sort method: "+method
-    def calc_entropy(self, method):
+    def calc_entropy(self, method) -> float:
         # See https://stackoverflow.com/questions/19434884/determining-how-well-a-deck-is-shuffled
         if method == Meld.RANKCOLOR:
             num_sets = self.count_melds(method=method)
@@ -250,17 +253,17 @@ class Pile(CardGroup):
         if cards == None: cards = list()
         self.cards = cards
         self.face_up = face_up
-    def draw(self, number = 1):
+    def draw(self, number = 1) -> List['Card']:
         cards = []
         for _ in range(number):
             cards.append(self.pop())
         return cards
-    def peek(self):
+    def peek(self) -> Card:
         return self.cards[-1]
-    def flip(self):
+    def flip(self) -> None:
         self.face_up = not self.face_up
         self.cards.reverse()
-    def deal(self, num_piles, num_cards = 1, face_up = False):
+    def deal(self, num_piles, num_cards = 1, face_up = False) -> List['Pile']:
         piles = []
         for _ in range(num_piles):
             piles.append(Pile(face_up = face_up))
@@ -272,7 +275,7 @@ class Pile(CardGroup):
                 #print(str(card)+" to pile "+str(p_idx))
                 piles[p_idx].push(card)
         return piles
-    def split(self, num_piles, face_up = False, include_current = False):
+    def split(self, num_piles, face_up = False, include_current = False) -> List['Piles']:
         piles = []
         cards_list = np.array_split(self.cards, num_piles)
         for cards in cards_list:
@@ -283,7 +286,7 @@ class Pile(CardGroup):
         else:
             self.cards = []
         return piles
-    def shuffle(self, iterations = 7, precision = 10, method = RIFFLE_SHUFFLE):
+    def shuffle(self, iterations = 7, precision = 10, method = RIFFLE_SHUFFLE) -> None:
         if len(self.cards) > 100:
             raise "Can't shuffle that many. Specify another method."
         if method == self.PERFECT_SHUFFLE:
@@ -294,7 +297,7 @@ class Pile(CardGroup):
             self.multi_quick_shuffle(iterations = iterations, precision = precision)
         else:
             raise "Unknown shuffle method: "+method
-    def riffle_shuffle(self, iterations = 7, precision = 10):
+    def riffle_shuffle(self, iterations = 7, precision = 10) -> None:
         if len(self.cards) > 100:
             raise "Can't riffle shuffle that many. Specify another method."
         half = [[],[]]
@@ -336,7 +339,7 @@ class Pile(CardGroup):
     Custom shuffle method where multiple players shuffle many decks together
     The method is to take a ~52 cards at a time shuffle once then trade half the cards for another set
     '''
-    def multi_quick_shuffle(self, iterations = 1, precision = 10, players = None, num_players = None, seconds = 120):
+    def multi_quick_shuffle(self, iterations = 1, precision = 10, players = None, num_players = None, seconds = 120) -> None:
         if players and num_players:
             raise "parameters players and num_players are mutually exclusive."
         if len(self.cards) < 52:
@@ -391,7 +394,7 @@ class Pile(CardGroup):
         for pile in piles:
             self.add(pile)
 
-    def __str__(self):
+    def __str__(self) -> str:
         s = "["
         if len(self.cards) == 0:
             s += "Empty"
@@ -402,7 +405,7 @@ class Pile(CardGroup):
                 s += str(self.peek().back)
             s += "] ("+str(self.count())+")"
         return s
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
 class Hand(CardGroup):
@@ -410,16 +413,16 @@ class Hand(CardGroup):
     def __init__(self, cards = None):
         if cards == None: cards = list()
         self.cards = list(cards)
-    def add(self, cards):
+    def add(self, cards) -> None:
         self.cards.extend(cards)
-    def remove(self, card):
+    def remove(self, card) -> None:
         self.cards.remove(card)
 
     #def sort(self, method = SUITRANK):
     #    self.cards.sort()
     #def SUITRANK(card):
     #    return card.suit.value * 1 + card.rank.value * 1000
-    def __str__(self):
+    def __str__(self) -> str:
         s = ""
         if len(self.cards) == 0:
             s += "[Empty"
@@ -442,11 +445,11 @@ class Fan(CardGroup):
         if cards == None: cards = list()
         self.cards = list(cards)
         self.face_up = face_up
-    def add(self, cards):
+    def add(self, cards) -> None:
         self.cards.extend(cards)
-    def remove(self, card):
+    def remove(self, card) -> None:
         self.cards.remove(card)
-    def __str__(self):
+    def __str__(self) -> str:
         s = ""
         if len(self.cards) == 0:
             s += "[Empty"
