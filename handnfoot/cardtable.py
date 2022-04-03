@@ -181,6 +181,18 @@ class Meld(list):
         else:
             raise ValueError("Unknown method "+method)
         return meld_type
+    @classmethod
+    def get_melds(cls, cards, method):
+        if len(cards) == 0:
+            return []
+        melds = dict()
+        for card in cards:
+            meld_type = cls.get_card_meld_type(card, method)
+            if meld_type not in melds:
+                melds[meld_type] = Meld(method = method)
+            melds[meld_type].append(card)
+        return list(melds.values())
+
 
 class CardGroup():
     cards = None
