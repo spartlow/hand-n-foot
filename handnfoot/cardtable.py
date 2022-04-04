@@ -192,7 +192,7 @@ class Meld(list):
                 return True
         return False
     @classmethod
-    def get_melds(cls, cards, method) -> List['Meld']:
+    def get_melds(cls, cards, method) -> typing.List['Meld']:
         if len(cards) == 0:
             return []
         melds = dict()
@@ -210,7 +210,7 @@ class CardGroup():
         return len(self.cards)
     def __str__(self) -> str:
         return str(self)
-    def get_melds(self, method) -> List['Meld']:
+    def get_melds(self, method) -> typing.List['Meld']:
         return Meld.get_melds(cards = self.cards, method = method)
     def count_melds(self, method) -> int:
         return len(self.get_melds(method))
@@ -253,7 +253,7 @@ class Pile(CardGroup):
         if cards == None: cards = list()
         self.cards = cards
         self.face_up = face_up
-    def draw(self, number = 1) -> List['Card']:
+    def draw(self, number = 1) -> typing.List['Card']:
         cards = []
         for _ in range(number):
             cards.append(self.pop())
@@ -263,7 +263,7 @@ class Pile(CardGroup):
     def flip(self) -> None:
         self.face_up = not self.face_up
         self.cards.reverse()
-    def deal(self, num_piles, num_cards = 1, face_up = False) -> List['Pile']:
+    def deal(self, num_piles, num_cards = 1, face_up = False) -> typing.List['Pile']:
         piles = []
         for _ in range(num_piles):
             piles.append(Pile(face_up = face_up))
@@ -275,7 +275,7 @@ class Pile(CardGroup):
                 #print(str(card)+" to pile "+str(p_idx))
                 piles[p_idx].push(card)
         return piles
-    def split(self, num_piles, face_up = False, include_current = False) -> List['Piles']:
+    def split(self, num_piles, face_up = False, include_current = False) -> typing.List['Pile']:
         piles = []
         cards_list = np.array_split(self.cards, num_piles)
         for cards in cards_list:
