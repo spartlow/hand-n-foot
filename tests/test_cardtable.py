@@ -1,4 +1,11 @@
+#!/usr/bin/env python
+
+import os
+import sys
 import logging
+import pytest
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from handnfoot import cardtable
 
@@ -66,3 +73,6 @@ def test_includes_meld():
     for card in dissimilar:
         meld_type = meld_type = card.get_meld_type(method = method)
         assert not area.includes_meld_type(meld_type = meld_type, method = method)
+
+if __name__ == "__main__":
+    pytest.main([__file__])
