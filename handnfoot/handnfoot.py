@@ -135,9 +135,12 @@ class HNFGame():
                 melds = self.get_ready_melds(player)
                 for meld in melds:
                     self.lay_down(player, cards = list(meld))
-                    pass #TODO
-            pass #TODO
         else:
+            melds = player.get_hand().get_melds(cardtable.Meld.RANKCOLOR)
+            for meld in melds:
+                if len(meld) or player.get_area("down").includes_meld_type(meld.get_type()):
+                    self.lay_down(player, cards = list(meld))
+            #TODO play wild cards?
             # TODO for each meld > 3 and if down area.includes_meld then play
             pass #TODO
         # add new melds
@@ -161,9 +164,13 @@ class HNFGame():
         player.get_hand().sort(method = cardtable.Meld.RANKCOLOR)
     def lay_down(self, player, cards):
         hand = player.get_hand()
+        down_area = self.table.get_area(name = "down")
+        piles_area = self.table.get_area(name = "complete")
         for card in cards:
             hand.remove(card)
-        pass #TODO
+        down_area.add_to_group_by_meld_type(cards = cards, method = cardtable.Meld.RANKCOLOR, group_cls = cardtable.Fan)
+        #TODO add fans to piles
+        #TODO check that fans have at least 3.
     def get_card_desirability(self, strategy, card, meld_size):
         """ Preference:
                 If have incomplete pile

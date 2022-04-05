@@ -492,6 +492,19 @@ class PlayingArea():
             if group.includes_meld_type(meld_type = meld_type, method = method):
                 return True
         return False
+    def get_group_by_meld_type(self, meld_type, method):
+        for group in self.groups:
+            if group.cards and group.cards[0].get_meld_type(method = method) == meld_type:
+                return group
+        return None
+    def add_to_group_by_meld_type(self, cards, method, group_cls) -> None:
+        for card in cards:
+            group = self.get_group_by_meld_type(meld_type = card.get_meld_type(), method = method)
+            if not group:
+                group = group_cls()
+            if not isinstance(group, group_cls):
+                raise "Unexpected group type: "+str(type(group))+" expected: "+str(group_cls)
+            group.push(card)
     def display(self):
         if self.name: print(self.name+":", end=" ")
         print("  ".join([str(x) for x in self.groups]))
@@ -514,7 +527,7 @@ class Table():
         if area in self.areas:
             raise "Area already on the table!"
         self.areas.append(area)
-    def get_area(self, name):
+    def get_area(self, name) -> PlayingArea:
         for area in self.areas:
             if area.name == name:
                 return area
