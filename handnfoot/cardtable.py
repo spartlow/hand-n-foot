@@ -146,10 +146,10 @@ class Card:
         return cls(Rank.parse(shorthand[0]), Suit.parse(shorthand[1]), back)
 
 """
-Defines a deck of cards.
-For a group of cards, see Pile.
+Defines a pack of cards, i.e. a deck that comes scrinkwrapped.
+For a group of cards stacked as a deck, see Pile.
 """
-class Deck:
+class Pack:
     back = cards = None
     def __init__(self, back = None):
         if back == None:
@@ -244,6 +244,9 @@ class CardGroup():
         else:
             raise "Unknown calc_entropy method: "+str(method)
 
+"""
+A stack of cards. E.g. a deck.
+"""
 class Pile(CardGroup):
     cards = face_up = None
     PERFECT_SHUFFLE = 1
@@ -571,13 +574,13 @@ class Player():
             area.display()
 
 '''
-#print(len(Deck("Green").cards))
+#print(len(Pack("Green").cards))
 #print(Suit.CLUBS.value)
-#p = Pile(Deck("Green").cards)
+#p = Pile(Pack("Green").cards)
 #print(p)
 #p.flip()
 #print(p)
-p = Deck().get_pile()
+p = Pack().get_pile()
 #print(p.cards)
 print(p.calc_entropy(method=Meld.RANKCOLOR))
 p.shuffle(iterations=7, precision=10)
@@ -596,19 +599,19 @@ print(ps[1].calc_entropy(method=Meld.RANKCOLOR))
 '''
 table = Table()
 area = PlayingArea("Main")
-area.append(Deck().get_pile())
-area.append(Deck().get_pile())
+area.append(Pack().get_pile())
+area.append(Pack().get_pile())
 #area.display()
 table.add_area(area)
 table.display()
 #'''
 
 '''
-p = Deck().get_pile()
-p.add(Deck().get_pile())
-p.add(Deck().get_pile())
-p.add(Deck().get_pile())
-p.add(Deck().get_pile())
+p = Pack().get_pile()
+p.add(Pack().get_pile())
+p.add(Pack().get_pile())
+p.add(Pack().get_pile())
+p.add(Pack().get_pile())
 p.sort(method = Meld.RANKCOLOR)
 #print(p.calc_entropy(method=Meld.RANKCOLOR))
 p.multi_quick_shuffle(seconds = 60 * 2, iterations = 1)
@@ -620,7 +623,7 @@ p3 = p.deal(num_piles=1, num_cards=54)[0]
 print(p3.calc_entropy(method=Meld.RANKCOLOR))
 '''
 
-p = Deck().get_pile()
+p = Pack().get_pile()
 p.draw(11)
 p.draw(11)
 print(p)

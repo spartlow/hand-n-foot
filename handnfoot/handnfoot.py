@@ -25,7 +25,7 @@ class HNFGame():
         self.setup = False
         self.players = []
         self.round = 0
-        #self.decks = []
+        #self.packs = []
         #self.piles = []
         #self.table = cards.Table()
         self.table = cardtable.Table()
@@ -85,9 +85,9 @@ class HNFGame():
         self.table.add_area(cardtable.PlayingArea(name="discard"))
         self.table.add_area(cardtable.PlayingArea(name="draw"))
         for _ in range(len(self.players) + 1):
-            deck = cardtable.Deck()
-            #self.decks.append(deck)
-            self.table.get_area("discard").append(deck.get_pile())
+            pack = cardtable.Pack()
+            #self.packs.append(pack)
+            self.table.get_area("discard").append(pack.get_pile())
     def round_setup(self):
         self.round += 1
         if self.round > 4:
@@ -111,7 +111,7 @@ class HNFGame():
             draw_area.append(draw_pile)
         #draw_area.display()
         for idx, player in enumerate(self.players):
-            # Get hands from decks in front of other players
+            # Get hands from packs in front of other players
             hands = list()
             hands.append(cardtable.Pile(cards = draw_area.groups[(idx - 1) % len(self.players)].draw(number = 11)))
             hands.append(cardtable.Pile(cards = draw_area.groups[(idx + 1) % len(self.players)].draw(number = 11)))
