@@ -1,9 +1,10 @@
 """
   Simulate Hand and Foot card game
 """
-import cardtable
-from types import SimpleNamespace
 import random
+import logging
+from types import SimpleNamespace
+import cardtable
 
 class Strategy(SimpleNamespace):
     DRAW_CLOSEST = 1
@@ -92,7 +93,7 @@ class HNFGame():
     def game_setup(self):
         if self.setup:
             return
-        print("Setting up game")
+        logging.info("Setting up game")
         self.setup = True
         self.table.add_area(cardtable.PlayingArea(name="discard"))
         self.table.add_area(cardtable.PlayingArea(name="draw"))
@@ -102,6 +103,7 @@ class HNFGame():
             self.table.get_area("discard").append(pack.get_pile())
     def round_setup(self):
         self.round += 1
+        logging.info("Setting up round "+str(self.round))
         if self.round > 4:
             raise ValueError("Too many rounds")
         for player in self.players:
@@ -171,12 +173,14 @@ class HNFGame():
             pile_idx += 1
             if pile_idx > len(draw_area.groups):
                 raise(ValueError("Can't find card"))
+        logging.debug(f"Player {player.name} draws {cardtable.cards_to_str(cards)}")
         player.get_hand().add(cards)
         player.get_hand().sort(method = cardtable.Meld.RANKCOLOR)
     def lay_down(self, player, cards):
+        logging.debug(f"Player {player.name} lays down {cardtable.cards_to_str(cards)}")
         hand = player.get_hand()
-        down_area = self.table.get_area(name = "down")
-        piles_area = self.table.get_area(name = "complete")
+        down_area = player.get_area(name = "down")
+        piles_area = player.get_area(name = "complete")
         for card in cards:
             hand.remove(card)
         down_area.add_to_group_by_meld_type(cards = cards, method = cardtable.Meld.RANKCOLOR, group_cls = cardtable.Fan)
@@ -235,16 +239,19 @@ class HNFGame():
         self.game_setup()
         self.round_setup()
 
-g = HNFGame()
-g.add_player(cardtable.Player("J", precision=5, speed=1.2), Strategy())
-g.add_player(cardtable.Player("S", precision=10, speed=1), Strategy())
-g.add_player(cardtable.Player("L", precision=7, speed=1), Strategy())
-g.add_player(cardtable.Player("A", precision=15, speed=.9), Strategy())
-#g.game_setup()
-#g.round_setup()
-g.start()
-#g.display()
+if __name__ == "__main__":
+    logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+    g = HNFGame()
+    g.add_player(cardtable.Player("J", precision=5, speed=1.2), Strategy())
+    g.add_player(cardtable.Player("S", precision=10, speed=1), Strategy())
+    g.add_player(cardtable.Player("L", precision=7, speed=1), Strategy())
+    g.add_player(cardtable.Player("A", precision=15, speed=.9), Strategy())
+    #g.game_setup()
+    #g.round_setup()
+    g.start()
+    #g.display()
 
-g.players[0].display()
-g.play_turn(player = g.players[0])
-g.players[0].display()
+    g.players[0].display()
+    for i in range(20):
+        g.play_turn(player = g.players[0])
+    g.players[0].display()

@@ -117,10 +117,10 @@ class Card:
         return 0
     def get_unicode(self) -> str:
         if self.suit == Suit.RED:
-            if self.rank is not Rank.JOKER: raise "Unexpected rank for Suit.RED: "+self.rank
+            if self.rank is not Rank.JOKER: raise ValueError("Unexpected rank for Suit.RED: "+self.rank)
             code = int("F0BF")
         elif self.suit == Suit.BLACK:
-            if self.rank is not Rank.JOKER: raise "Unexpected rank for Suit.BLACK: "+self.rank
+            if self.rank is not Rank.JOKER: raise ValueError("Unexpected rank for Suit.BLACK: "+self.rank)
             code = int("F0DF")
         else:
             if self.suit == Suit.SPADES:
@@ -132,7 +132,7 @@ class Card:
                 code = int("1F0C0", 16)
             elif self.suit == Suit.CLUBS:
                 code = int("1F0D0", 16)
-            else: raise "Unexpected suit: "+self.suit
+            else: raise ValueError("Unexpected suit: "+self.suit)
             if self.rank.value <= Rank.JACK.value:
                 code += self.rank.value
             else:
@@ -230,7 +230,7 @@ class CardGroup():
         if method == Meld.RANKCOLOR:
             self.cards.sort(key=lambda card: card.rank.get_shorthand()+str(card.get_color()))
         else:
-            raise "Unknown sort method: "+method
+            raise ValueError("Unknown sort method: "+method)
     def calc_entropy(self, method) -> float:
         # See https://stackoverflow.com/questions/19434884/determining-how-well-a-deck-is-shuffled
         if method == Meld.RANKCOLOR:
@@ -242,7 +242,7 @@ class CardGroup():
                 return 1.0
             return ((num_sets - min_sets) / (max_sets - min_sets))
         else:
-            raise "Unknown calc_entropy method: "+str(method)
+            raise ValueError("Unknown calc_entropy method: "+str(method))
 
 """
 A stack of cards. E.g. a deck.
@@ -274,7 +274,7 @@ class Pile(CardGroup):
             for p_idx in range(num_piles):
                 card = self.pop()
                 if card == None:
-                    raise "No more cards to deal!"
+                    raise ValueError("No more cards to deal!")
                 #print(str(card)+" to pile "+str(p_idx))
                 piles[p_idx].push(card)
         return piles
@@ -291,7 +291,7 @@ class Pile(CardGroup):
         return piles
     def shuffle(self, iterations = 7, precision = 10, method = RIFFLE_SHUFFLE) -> None:
         if len(self.cards) > 100:
-            raise "Can't shuffle that many. Specify another method."
+            raise ValueError("Can't shuffle that many. Specify another method.")
         if method == self.PERFECT_SHUFFLE:
             random.shuffle(self.cards)
         elif method == self.RIFFLE_SHUFFLE:
@@ -299,10 +299,10 @@ class Pile(CardGroup):
         elif method == self.MULTI_QUICK_SHUFFLE:
             self.multi_quick_shuffle(iterations = iterations, precision = precision)
         else:
-            raise "Unknown shuffle method: "+method
+            raise ValueError("Unknown shuffle method: "+method)
     def riffle_shuffle(self, iterations = 7, precision = 10) -> None:
         if len(self.cards) > 100:
-            raise "Can't riffle shuffle that many. Specify another method."
+            raise ValueError("Can't riffle shuffle that many. Specify another method.")
         half = [[],[]]
         if len(self.cards) < 2:
             return
@@ -333,7 +333,7 @@ class Pile(CardGroup):
                     del half[side][0]
                 loop_count += 1
                 if loop_count > len(self.cards):
-                    raise "Too many loops!"
+                    raise ValueError("Too many loops!")
             # Add any more remaining cards
             cards.extend(half[0])
             cards.extend(half[1])
@@ -344,9 +344,9 @@ class Pile(CardGroup):
     '''
     def multi_quick_shuffle(self, iterations = 1, precision = 10, players = None, num_players = None, seconds = 120) -> None:
         if players and num_players:
-            raise "parameters players and num_players are mutually exclusive."
+            raise ValueError("parameters players and num_players are mutually exclusive.")
         if len(self.cards) < 52:
-            raise "too few cards to shuffle"
+            raise ValueError("too few cards to shuffle")
         if not players:
             if not num_players: num_players = 4
             players = []
@@ -357,7 +357,7 @@ class Pile(CardGroup):
         piles = self.split(num_players)
         for player in players:
             if hasattr(player, "multi_quick") and player.multi_quick:
-                raise "Unexpected multi_quick_pile"
+                raise ValueError("Unexpected multi_quick_pile")
             player.multi_quick = SimpleNamespace()
             player.multi_quick.pile = None
         # iterate a second at a time
@@ -484,7 +484,7 @@ class PlayingArea():
         return pile
     def append(self, group):
         if group in self.groups:
-            raise "Group already in playing area!"
+            raise ValueError("Group already in playing area!")
         self.groups.append(group)
     def transfer_cards(self, areas):
         for area in areas:
@@ -502,11 +502,11 @@ class PlayingArea():
         return None
     def add_to_group_by_meld_type(self, cards, method, group_cls) -> None:
         for card in cards:
-            group = self.get_group_by_meld_type(meld_type = card.get_meld_type(), method = method)
+            group = self.get_group_by_meld_type(meld_type = card.get_meld_type(method = method), method = method)
             if not group:
                 group = group_cls()
             if not isinstance(group, group_cls):
-                raise "Unexpected group type: "+str(type(group))+" expected: "+str(group_cls)
+                raise ValueError("Unexpected group type: "+str(type(group))+" expected: ")+str(group_cls)
             group.push(card)
     def display(self):
         if self.name: print(self.name+":", end=" ")
@@ -528,16 +528,16 @@ class Table():
         self.players = list()
     def add_area(self, area):
         if area in self.areas:
-            raise "Area already on the table!"
+            raise ValueError("Area already on the table!")
         self.areas.append(area)
     def get_area(self, name) -> PlayingArea:
         for area in self.areas:
             if area.name == name:
                 return area
-        raise "Area not found: "+name
+        raise ValueError("Area not found: "+name)
     def add_player(self, player):
         if player in self.players:
-            raise "Player already at the table: "+str(player)
+            raise ValueError("Player already at the table: "+str(player))
         self.players.append(player)
     def display(self):
         for area in self.areas:
@@ -554,13 +554,13 @@ class Player():
         self.areas = []
     def add_area(self, area):
         if area in self.areas:
-            raise "Area already associated with Player!"
+            raise ValueError("Area already associated with Player!")
         self.areas.append(area)
     def get_area(self, name):
         for area in self.areas:
             if area.name == name:
                 return area
-        raise "Player area not found: "+name
+        raise ValueError("Player area not found: "+name)
     def get_hand(self):
         hand_area = self.get_area("hand")
         if len(hand_area.groups) != 1:
@@ -572,6 +572,17 @@ class Player():
     def display_areas(self):
         for area in self.areas:
             area.display()
+
+def cards_to_str(cards) -> str:
+    s = ""
+    if len(cards) == 0:
+        s += "[Empty"
+    else:
+        for card in cards:
+            s += "["+card.get_shorthand()
+    s += "]"
+    return s
+
 
 '''
 #print(len(Pack("Green").cards))
