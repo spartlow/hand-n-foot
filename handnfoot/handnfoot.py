@@ -138,12 +138,11 @@ class HNFGame():
         else:
             melds = player.get_hand().get_melds(cardtable.Meld.RANKCOLOR)
             for meld in melds:
-                if len(meld) or player.get_area("down").includes_meld_type(meld.get_type()):
+                if len(meld)>=3 or player.get_area("down").includes_meld_type(meld.get_type()):
                     self.lay_down(player, cards = list(meld))
             #TODO play wild cards?
             # TODO for each meld > 3 and if down area.includes_meld then play
             pass #TODO
-        # add new melds
         # take foot and repeat
         # make piles
         # discard
