@@ -6,15 +6,27 @@ from types import SimpleNamespace
 import random
 
 class Strategy(SimpleNamespace):
-    laydown_dirty = True
-    dirty_for_safety = True
-    safe_when_missing_pile = True
-    safe_when_hand_gt = 5
-    prefer_high = True
-    draw_from = 'closest' # random, hand source, foot source
+    DRAW_CLOSEST = 1
+    DRAW_RANDOM = 2
+    DRAW_HAND_SOURCE = 3
+    DRAW_FOOT_SOURCE = 4
+    DRAW_CURRENT_SOURCE = 5
+    def __init__(self):
+        laydown_dirty = True
+        dirty_for_safety = True
+        safe_when_missing_pile = True
+        safe_when_hand_gt = 5
+        prefer_high = True
+        draw_from = self.DRAW_CLOSEST
 
 class HNFRules():
+    DIRTY_MAX_MINORITY = 1 # Wilds need to be minority of cards in fan
     def __init__(self):
+        allow_discard_to_end_last_round = False
+        allow_melds_of_threes = False
+        allow_melds_of_wilds = False
+        allow_add_wilds_to_existing_piles = False
+        dirty_wildcard_max_rule = self.DIRTY_MAX_MINORITY
         pass
     @classmethod
     def round_starting_points(cls, round):
