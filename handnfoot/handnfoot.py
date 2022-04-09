@@ -237,6 +237,7 @@ class HNFGame():
         melds.sort(key=len)
         card = melds[0][0]
         hand.remove(card)
+        logging.debug(f"Player {player.name} discards {card.get_shorthand()} leaving {cardtable.cards_to_str(hand.cards)}")
         self.table.get_area("discard").groups[0].push(card)
         """
         Get cards sorted by desirability (from strategy)
