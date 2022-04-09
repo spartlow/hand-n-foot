@@ -403,7 +403,7 @@ class Pile(CardGroup):
             s += "Empty"
         else:
             if self.face_up:
-                s += str(self.peek())
+                s += str(self.peek().get_shorthand())
             else:
                 s += str(self.peek().back)
             s += "] ("+str(self.count())+")"
@@ -420,6 +420,12 @@ class Hand(CardGroup):
         self.cards.extend(cards)
     def remove(self, card) -> None:
         self.cards.remove(card)
+    def remove_cards(self, cards) -> None:
+        keepers = []
+        for card in self.cards:
+            if card not in cards:
+                keepers.append(card)
+        self.cards = keepers
 
     #def sort(self, method = SUITRANK):
     #    self.cards.sort()
@@ -486,6 +492,14 @@ class PlayingArea():
         if group in self.groups:
             raise ValueError("Group already in playing area!")
         self.groups.append(group)
+    def remove(self, group):
+        self.groups.remove(group)
+    def remove_empty_groups(self):
+        new_groups = []
+        for group in self.groups:
+            if len(group.cards) > 0:
+                new_groups.append(group)
+        self.groups = new_groups
     def transfer_cards(self, areas):
         for area in areas:
             self.groups.extend(area.groups)
@@ -505,6 +519,7 @@ class PlayingArea():
             group = self.get_group_by_meld_type(meld_type = card.get_meld_type(method = method), method = method)
             if not group:
                 group = group_cls()
+                self.groups.append(group)
             if not isinstance(group, group_cls):
                 raise ValueError("Unexpected group type: "+str(type(group))+" expected: ")+str(group_cls)
             group.push(card)

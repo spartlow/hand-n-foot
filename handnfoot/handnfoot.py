@@ -140,6 +140,7 @@ class HNFGame():
         print("")
         self.table.display()
     def play_turn(self, player):
+        method = cardtable.Meld.RANKCOLOR
         hand = player.get_hand()
         # draw
         self.draw(player)
@@ -152,8 +153,12 @@ class HNFGame():
         else:
             melds = player.get_hand().get_melds(cardtable.Meld.RANKCOLOR)
             for meld in melds:
-                if len(meld)>=3 or player.get_area("down").includes_meld_type(meld.get_type()):
+                #print(str(len(meld))+" "+meld.get_type())
+                if len(meld)>=3 or player.get_area("down").includes_meld_type(meld.get_type(), method = method) \
+                        or player.get_area("complete").includes_meld_type(meld.get_type(), method = method):
                     self.lay_down(player, cards = list(meld))
+                #else:
+                #    print(player.get_area("down").includes_meld_type(meld.get_type(), method = method))
             #TODO play wild cards?
             # TODO for each meld > 3 and if down area.includes_meld then play
             pass #TODO
@@ -169,7 +174,8 @@ class HNFGame():
         cards = []
         while(len(cards) < 2):
             draw_pile = draw_area.groups[(pile_idx ) % len(draw_area.groups)]
-            cards.extend(draw_pile.draw(number = 2 - len(cards)))
+            if len(draw_pile.cards) > 0:
+                cards.extend(draw_pile.draw(number = 2 - len(cards)))
             pile_idx += 1
             if pile_idx > len(draw_area.groups):
                 raise(ValueError("Can't find card"))
@@ -180,12 +186,31 @@ class HNFGame():
         logging.debug(f"Player {player.name} lays down {cardtable.cards_to_str(cards)}")
         hand = player.get_hand()
         down_area = player.get_area(name = "down")
-        piles_area = player.get_area(name = "complete")
-        for card in cards:
-            hand.remove(card)
+        hand.remove_cards(cards)
         down_area.add_to_group_by_meld_type(cards = cards, method = cardtable.Meld.RANKCOLOR, group_cls = cardtable.Fan)
-        #TODO add fans to piles
+        self.add_fans_to_piles(player = player)
         #TODO check that fans have at least 3.
+        player.hnf_is_down = True
+    def add_fans_to_piles(self, player):
+        method = cardtable.Meld.RANKCOLOR
+        down_area = player.get_area(name = "down")
+        complete_area = player.get_area(name = "complete")
+        for fan in down_area.groups:
+            if len(fan.cards) == 0:
+                continue # or remove it?
+            meld_type = fan.cards[0].get_meld_type(method = method)
+            pile = complete_area.get_group_by_meld_type(meld_type = meld_type, method = method)
+            if not pile and len(fan.cards) >= 7:
+                pile = cardtable.Pile()
+                pile.face_up = True
+                pile.hnf_clean = True # TODO if has wildcards mark dirty
+                complete_area.append(pile)
+            if pile:
+                logging.debug(f"Player {player.name} added {cardtable.cards_to_str(fan.cards)} to a pile")
+                pile.add(fan.cards)
+                fan.cards = []
+                player.display()
+        down_area.remove_empty_groups()
     def get_card_desirability(self, strategy, card, meld_size):
         """ Preference:
                 If have incomplete pile
@@ -252,6 +277,6 @@ if __name__ == "__main__":
     #g.display()
 
     g.players[0].display()
-    for i in range(20):
+    for i in range(50):
         g.play_turn(player = g.players[0])
     g.players[0].display()
