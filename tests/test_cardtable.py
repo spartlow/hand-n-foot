@@ -5,9 +5,8 @@ import sys
 import logging
 import pytest
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from handnfoot import cardtable
+from context import cardtable
+#from handnfoot import cardtable
 
 def test_card_names():
     card = cardtable.Card(cardtable.Rank.ACE, cardtable.Suit.SPADES)
