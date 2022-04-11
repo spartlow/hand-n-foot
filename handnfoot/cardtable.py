@@ -115,6 +115,11 @@ class Card:
         elif self.rank == Rank.JOKER:
             return 2
         return 0
+    def get_HTML(self) -> str:
+        s = '<span style="color:'+str(self.get_color())+'">'
+        s += self.get_unicode()
+        s += '</span>'
+        return s
     def get_unicode(self) -> str:
         if self.suit == Suit.RED:
             if self.rank is not Rank.JOKER: raise ValueError("Unexpected rank for Suit.RED: "+self.rank)
@@ -137,7 +142,7 @@ class Card:
                 code += self.rank.value
             else:
                 code += self.rank.value + 1 #skip the "Knight" card
-        print(code)
+        #print(code)
         return chr(code)
     def get_meld_type(self, method) -> str:
         return Meld.get_card_meld_type(self, method)
@@ -235,7 +240,7 @@ class CardGroup():
         # See https://stackoverflow.com/questions/19434884/determining-how-well-a-deck-is-shuffled
         if method == Meld.RANKCOLOR:
             num_sets = self.count_melds(method=method)
-            print(num_sets)
+            #print(num_sets)
             min_sets = 1 #math.ceil(self.count() / 2)
             max_sets = min(28, self.count())
             if max_sets - min_sets == 0:
