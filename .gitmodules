@@ -1,0 +1,3 @@
+[submodule "handnfoot/pcassets"]
+	path = handnfoot/pcassets
+	url = git@github.com:hayeah/playing-cards-assets.git
