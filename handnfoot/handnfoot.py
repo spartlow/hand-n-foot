@@ -4,7 +4,7 @@
 import random
 import logging
 from types import SimpleNamespace
-import cardtable
+from . import cardtable
 
 class Strategy(SimpleNamespace):
     DRAW_CLOSEST = 1
