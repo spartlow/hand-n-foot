@@ -27,6 +27,10 @@ class Color(Enum):
 
 from enum import Enum
 class Suit(Enum):
+    """ Suit of the card. e.g. Hearts.
+
+    Note that some cards (Jokers) don't have a suit, so their suit is the same as their color.
+    """
     HEARTS = 1
     DIAMONDS = 2
     SPADES = 3
@@ -52,6 +56,8 @@ class Suit(Enum):
 
 from enum import Enum
 class Rank(Enum):
+    """ Rank is the number of the card. E.g. Ace, Two, Jack, etc
+    """
     ACE = 1
     TWO = 2
     THREE = 3
@@ -86,10 +92,10 @@ class Rank(Enum):
     def parse(cls, shorthand) -> Rank:
         return cls(cls._shorthands().index(shorthand) + 1)
 
-"""
-Defines a card
-"""
 class Card:
+    """
+    Defines a card
+    """
     rank = suit = back = None
     def __init__(self, rank, suit, back = ""):
         self.rank = rank
@@ -150,11 +156,11 @@ class Card:
     def parse(cls, shorthand, back = "") -> Card:
         return cls(Rank.parse(shorthand[0]), Suit.parse(shorthand[1]), back)
 
-"""
-Defines a pack of cards, i.e. a deck that comes scrinkwrapped.
-For a group of cards stacked as a deck, see Pile.
-"""
 class Pack:
+    """
+    Defines a pack of cards, i.e. a deck that comes scrinkwrapped.
+    For a group of cards stacked as a deck, see Pile.
+    """
     back = cards = None
     def __init__(self, back = None):
         if back == None:
@@ -171,6 +177,10 @@ class Pack:
         return Pile(self.cards)
 
 class Meld(list):
+    """ Represents a set of cards that match.
+
+    RANKCOLOR meld are cards that have the same rank (value) and color (red or black)
+    """
     RANKCOLOR = 1
     def __init__(self, method, cards = []):
         self.method = method
@@ -249,10 +259,12 @@ class CardGroup():
         else:
             raise ValueError("Unknown calc_entropy method: "+str(method))
 
-"""
-A stack of cards. E.g. a deck.
-"""
 class Pile(CardGroup):
+    """
+    A stack of cards. E.g. a deck.
+
+    Can be face up or face down.
+    """
     cards = face_up = None
     PERFECT_SHUFFLE = 1
     RIFFLE_SHUFFLE = 2
@@ -343,11 +355,11 @@ class Pile(CardGroup):
             cards.extend(half[0])
             cards.extend(half[1])
             self.cards = cards
-    '''
-    Custom shuffle method where multiple players shuffle many decks together
-    The method is to take a ~52 cards at a time shuffle once then trade half the cards for another set
-    '''
     def multi_quick_shuffle(self, iterations = 1, precision = 10, players = None, num_players = None, seconds = 120) -> None:
+        '''
+        Custom shuffle method where multiple players shuffle many decks together
+        The method is to take a ~52 cards at a time shuffle once then trade half the cards for another set
+        '''
         if players and num_players:
             raise ValueError("parameters players and num_players are mutually exclusive.")
         if len(self.cards) < 52:
@@ -449,11 +461,11 @@ class Hand(CardGroup):
         s += "]"
         return s
 
-"""
-A group of cards layed out so all can see them.
-Similar to a Hand but typically not private.
-"""
 class Fan(CardGroup):
+    """
+    A group of cards layed out so all can see them.
+    Similar to a Hand but typically not private.
+    """
     cards = None
     def __init__(self, cards = None, face_up = True):
         if cards == None: cards = list()
