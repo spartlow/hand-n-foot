@@ -141,6 +141,8 @@ class HNFGame():
         print("")
         self.table.display()
     def play_turn(self, player):
+        if self.round_complete:
+            raise ValueError("Round is over!")
         method = cardtable.Meld.RANK
         hand = player.get_hand()
         foot = player.get_foot()
@@ -174,6 +176,7 @@ class HNFGame():
             if len(hand) == 0:
                 if len(foot) == 0:
                     logging.debug(f"Player {player.name} ends the round!")
+                    keep_playing = False
                     self.round_complete = True
                 else:
                     if keep_playing:
