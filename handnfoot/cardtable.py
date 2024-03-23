@@ -528,6 +528,12 @@ class Fan(CardGroup):
         self.cards.extend(cards)
     def remove(self, card) -> None:
         self.cards.remove(card)
+    def get_HTML(self) -> str:
+        s = '<span class="cardtable_fan_vertical">'
+        for card in self.cards:
+            s += card.get_HTML()
+        s += '</span>'
+        return s
     def __str__(self) -> str:
         s = ""
         if len(self.cards) == 0:

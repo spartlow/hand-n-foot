@@ -1,13 +1,4 @@
 
-.cardtable_hand {
-    padding-right: 50px; /* Leave room for last card overflow */
-    overflow: visible;
-}
-
-.cardtable_hand .cardtable_card {
-    width: 20px;
-    overflow: visible;
-}
 
 .cardtable_card {
     display: inline-block;
@@ -19,4 +10,29 @@ body span.cardtable_card img {
     width: 70px;
     max-width: 70px;
     height: 102px;
+}
+
+.cardtable_hand {
+    display: inline-block;
+    height: 102px;
+    padding-right: 50px; /* Leave room for last card overflow */
+    overflow: visible;
+}
+
+.cardtable_hand .cardtable_card {
+    width: 20px;
+    overflow: visible;
+}
+
+.cardtable_fan_vertical {
+    display: inline-block;
+    width: 70px;
+    padding-bottom: 82px; /* Leave room for last card overflow */
+    overflow: visible;
+}
+
+.cardtable_fan_vertical .cardtable_card {
+    display: block;
+    height: 20px;
+    overflow: visible;
 }
