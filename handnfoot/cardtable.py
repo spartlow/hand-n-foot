@@ -70,8 +70,15 @@ class Rank(Enum):
         return ["A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "*"]
     def get_shorthand(self) -> str:
         return self._get_shorthands()[self.value - 1]
+    def get_name(self) -> str:
+        return ["Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "None", "Ten", "Jack", "Queen", "King", "Ace"]
     def is_face_card(self) -> Boolean:
         if self.value >= self.JACK.value and self.value <= self.KING.value: # Jokers are not considered face cards
+            return True
+        else:
+            return False
+    def is_number_card(self) -> Boolean:
+        if self.value >= self.TWO.value and self.value <= self.TEN.value:
             return True
         else:
             return False
