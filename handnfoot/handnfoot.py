@@ -131,16 +131,16 @@ class HNFGame():
             hands.append(cardtable.Pile(cards = draw_area.groups[(idx + 1) % len(self.players)].draw(number = 11)))
             #draw_area.display()
             player.get_area("foot").append(hands.pop(random.randrange(len(hands))))
-            player.get_area("foot").groups[0].sort(method = cardtable.Meld.RANKCOLOR)
+            player.get_area("foot").groups[0].sort(method = cardtable.Meld.RANK)
             player.get_area("hand").append(cardtable.Hand(hands.pop().cards))
-            player.get_area("hand").groups[0].sort(method = cardtable.Meld.RANKCOLOR)
+            player.get_area("hand").groups[0].sort(method = cardtable.Meld.RANK)
     def display(self):
         for player in self.players:
             print(player.name+": "+str(self.get_player_score(player)))
         print("")
         self.table.display()
     def play_turn(self, player):
-        method = cardtable.Meld.RANKCOLOR
+        method = cardtable.Meld.RANK
         hand = player.get_hand()
         # draw
         self.draw(player)
@@ -151,7 +151,7 @@ class HNFGame():
                 for meld in melds:
                     self.lay_down(player, cards = list(meld))
         else:
-            melds = player.get_hand().get_melds(cardtable.Meld.RANKCOLOR)
+            melds = player.get_hand().get_melds(cardtable.Meld.RANK)
             for meld in melds:
                 #print(str(len(meld))+" "+meld.get_type())
                 if len(meld)>=3 or player.get_area("down").includes_meld_type(meld.get_type(), method = method) \
@@ -181,18 +181,18 @@ class HNFGame():
                 raise(ValueError("Can't find card"))
         logging.debug(f"Player {player.name} draws {cardtable.cards_to_str(cards)}")
         player.get_hand().add(cards)
-        player.get_hand().sort(method = cardtable.Meld.RANKCOLOR)
+        player.get_hand().sort(method = cardtable.Meld.RANK)
     def lay_down(self, player, cards):
         logging.debug(f"Player {player.name} lays down {cardtable.cards_to_str(cards)}")
         hand = player.get_hand()
         down_area = player.get_area(name = "down")
         hand.remove_cards(cards)
-        down_area.add_to_group_by_meld_type(cards = cards, method = cardtable.Meld.RANKCOLOR, group_cls = cardtable.Fan)
+        down_area.add_to_group_by_meld_type(cards = cards, method = cardtable.Meld.RANK, group_cls = cardtable.Fan)
         self.add_fans_to_piles(player = player)
         #TODO check that fans have at least 3.
         player.hnf_is_down = True
     def add_fans_to_piles(self, player):
-        method = cardtable.Meld.RANKCOLOR
+        method = cardtable.Meld.RANK
         down_area = player.get_area(name = "down")
         complete_area = player.get_area(name = "complete")
         for fan in down_area.groups:
@@ -233,7 +233,7 @@ class HNFGame():
         hand = player.get_hand()
         if len(hand.cards) == 0:
             raise ValueError("Can't discard from empty hand!")
-        melds = hand.get_melds(method = cardtable.Meld.RANKCOLOR)
+        melds = hand.get_melds(method = cardtable.Meld.RANK)
         melds.sort(key=len)
         card = melds[0][0]
         hand.remove(card)
@@ -245,7 +245,7 @@ class HNFGame():
 
         pass #TODO
     def get_ready_melds(self, player):
-        melds = player.get_hand().get_melds(cardtable.Meld.RANKCOLOR)
+        melds = player.get_hand().get_melds(cardtable.Meld.RANK)
         # TODO need to take into account wilds. They can't form meld
         ready = []
         for meld in melds:

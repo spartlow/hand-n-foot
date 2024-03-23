@@ -209,9 +209,11 @@ class Pack:
 class Meld(list):
     """ Represents a set of cards that match.
 
+    RANK meld are cards that have the same rank (e.g. n of a kind)
     RANKCOLOR meld are cards that have the same rank (value) and color (red or black)
     """
-    RANKCOLOR = 1
+    RANK = 1
+    RANKCOLOR = 2
     def __init__(self, method, cards = []):
         self.method = method
         if cards:
@@ -225,10 +227,13 @@ class Meld(list):
             return None
     @classmethod
     def get_card_meld_type(cls, card, method) -> str:
-        if method is cls.RANKCOLOR:
-            meld_type = card.rank.get_shorthand() + str(card.get_color())
-        else:
-            raise ValueError("Unknown method "+method)
+        match method:
+            case cls.RANK:
+                meld_type = card.rank.get_shorthand()
+            case cls.RANKCOLOR:
+                meld_type = card.rank.get_shorthand() + str(card.get_color())
+            case _:
+                raise ValueError("Unknown method "+method)
         return meld_type
     @classmethod
     def cards_include_meld_type(cls, cards, meld_type, method) -> Boolean:
@@ -272,22 +277,26 @@ class CardGroup():
     def pop(self) -> Card:
         return self.cards.pop()
     def sort(self, method) -> None:
-        if method == Meld.RANKCOLOR:
-            self.cards.sort(key=lambda card: card.rank.get_shorthand()+str(card.get_color()))
-        else:
-            raise ValueError("Unknown sort method: "+method)
+        match method:
+            case Meld.RANK:
+                self.cards.sort(key=lambda card: card.rank.get_shorthand())
+            case Meld.RANKCOLOR:
+                self.cards.sort(key=lambda card: card.rank.get_shorthand()+str(card.get_color()))
+            case _:
+                raise ValueError("Unknown method "+method)
     def calc_entropy(self, method) -> float:
         # See https://stackoverflow.com/questions/19434884/determining-how-well-a-deck-is-shuffled
-        if method == Meld.RANKCOLOR:
-            num_sets = self.count_melds(method=method)
-            #print(num_sets)
-            min_sets = 1 #math.ceil(self.count() / 2)
-            max_sets = min(28, self.count())
-            if max_sets - min_sets == 0:
-                return 1.0
-            return ((num_sets - min_sets) / (max_sets - min_sets))
-        else:
-            raise ValueError("Unknown calc_entropy method: "+str(method))
+        match method:
+            case Meld.RANK | Meld.RANKCOLOR:
+                num_sets = self.count_melds(method=method)
+                #print(num_sets)
+                min_sets = 1 #math.ceil(self.count() / 2)
+                max_sets = min(28, self.count())
+                if max_sets - min_sets == 0:
+                    return 1.0
+                return ((num_sets - min_sets) / (max_sets - min_sets))
+            case _:
+                raise ValueError("Unknown method "+method)
 
 class Pile(CardGroup):
     """

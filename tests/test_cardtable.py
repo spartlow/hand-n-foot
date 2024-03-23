@@ -15,6 +15,24 @@ def test_card_names():
     card2 = cardtable.Card.parse("5H")
     assert str(card2) == "FIVE of HEARTS"
 
+def test_meld_Rank():
+    method = cardtable.Meld.RANK
+    hand = cardtable.Hand()
+    hand.push(cardtable.Card(cardtable.Rank.ACE, cardtable.Suit.SPADES))
+    hand.push(cardtable.Card(cardtable.Rank.ACE, cardtable.Suit.CLUBS))
+    hand.push(cardtable.Card(cardtable.Rank.ACE, cardtable.Suit.HEARTS))
+    meld = cardtable.Meld(method = method, cards = hand.cards)
+    assert meld.method == method
+    assert str(meld) == "[ACE of SPADES, ACE of CLUBS, ACE of HEARTS]"
+    assert meld[0].get_meld_type(method = method) == "A"
+    assert meld.get_type() == "A"
+    hand.push(cardtable.Card(cardtable.Rank.ACE, cardtable.Suit.HEARTS))
+    hand.push(cardtable.Card(cardtable.Rank.TWO, cardtable.Suit.HEARTS))
+    melds = cardtable.Meld.get_melds(cards = hand.cards, method = method)
+    assert len(melds) == 2
+    assert melds[0].get_type() == "A"
+    assert melds[1].get_type() == "2"
+
 def test_meld_RankColor():
     method = cardtable.Meld.RANKCOLOR
     hand = cardtable.Hand()
