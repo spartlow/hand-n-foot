@@ -1,0 +1,11 @@
+
+
+.cardtable_card {
+    display:inline-block; 
+    background-color:white; 
+    border-radius: 5px; 
+    border: solid 1px black;
+}
+.cardtable_card {
+    width: 70px;
+}

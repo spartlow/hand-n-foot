@@ -41,6 +41,10 @@ class Suit(Enum):
         return ["H", "D", "S", "C", "B", "R"]
     def get_shorthand(self) -> str:
         return self._get_shorthands()[self.value - 1]
+    def _get_name_for_file(self) -> str:
+        return ["hearts", "diamonds", "spades", "clubs", "black", "red"]
+    def get_name_for_file(self) -> str:
+        return self._get_name_for_file()[self.value - 1]
     def get_color(self) -> Color:
         return [Color.RED, Color.RED, Color.BLACK, Color.BLACK, Color.BLACK, Color.RED][self.value - 1]
     def __repr__(self) -> str:
@@ -76,6 +80,10 @@ class Rank(Enum):
         return ["A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "*"]
     def get_shorthand(self) -> str:
         return self._get_shorthands()[self.value - 1]
+    def _get_name_for_file(self) -> str:
+        return ["ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king", "joker"]
+    def get_name_for_file(self) -> str:
+        return self._get_name_for_file()[self.value - 1]
     def is_face_card(self) -> Boolean:
         if self.value >= self.JACK.value and self.value <= self.KING.value: # Jokers are not considered face cards
             return True
@@ -122,10 +130,20 @@ class Card:
             return 2
         return 0
     def get_HTML(self) -> str:
-        s = '<span style="color:'+str(self.get_color())+'">'
-        s += self.get_unicode()
-        s += '</span>'
+        #s = '<span style="color:'+str(self.get_color())+'">'
+        #s += self.get_unicode()
+        #s += '</span>'
+        image_path = "handnfoot/pcassets/png"
+        file_name = self.get_name_for_file()
+        s = f'<span class="cardtable_card"><img src="{image_path}/{file_name}.png"></span>'
         return s
+    def get_name_for_file(self) -> str:
+        if self.suit == Suit.RED or self.suit == Suit.BLACK:
+            s = self.suit.get_name_for_file() + "_" + self.rank.get_name_for_file()
+        else:
+            s = self.rank.get_name_for_file() + "_of_" + self.suit.get_name_for_file()
+        return s
+
     def get_unicode(self) -> str:
         if self.suit == Suit.RED:
             if self.rank is not Rank.JOKER: raise ValueError("Unexpected rank for Suit.RED: "+self.rank)
