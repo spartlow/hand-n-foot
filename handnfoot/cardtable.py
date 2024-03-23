@@ -27,6 +27,10 @@ class Color(Enum):
 
 from enum import Enum
 class Suit(Enum):
+    """ Suit of the card. e.g. Hearts.
+
+    Note that some cards (Jokers) don't have a suit, so their suit is the same as their color.
+    """
     HEARTS = 1
     DIAMONDS = 2
     SPADES = 3
@@ -37,6 +41,10 @@ class Suit(Enum):
         return ["H", "D", "S", "C", "B", "R"]
     def get_shorthand(self) -> str:
         return self._get_shorthands()[self.value - 1]
+    def _get_name_for_file(self) -> str:
+        return ["hearts", "diamonds", "spades", "clubs", "black", "red"]
+    def get_name_for_file(self) -> str:
+        return self._get_name_for_file()[self.value - 1]
     def get_color(self) -> Color:
         return [Color.RED, Color.RED, Color.BLACK, Color.BLACK, Color.BLACK, Color.RED][self.value - 1]
     def __repr__(self) -> str:
@@ -52,6 +60,8 @@ class Suit(Enum):
 
 from enum import Enum
 class Rank(Enum):
+    """ Rank is the number of the card. E.g. Ace, Two, Jack, etc
+    """
     ACE = 1
     TWO = 2
     THREE = 3
@@ -72,6 +82,10 @@ class Rank(Enum):
         return self._get_shorthands()[self.value - 1]
     def get_name(self) -> str:
         return ["Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "None", "Ten", "Jack", "Queen", "King", "Ace"]
+    def _get_name_for_file(self) -> str:
+        return ["ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king", "joker"]
+    def get_name_for_file(self) -> str:
+        return self._get_name_for_file()[self.value - 1]
     def is_face_card(self) -> Boolean:
         if self.value >= self.JACK.value and self.value <= self.KING.value: # Jokers are not considered face cards
             return True
@@ -93,10 +107,10 @@ class Rank(Enum):
     def parse(cls, shorthand) -> Rank:
         return cls(cls._shorthands().index(shorthand) + 1)
 
-"""
-Defines a card
-"""
 class Card:
+    """
+    Defines a card
+    """
     rank = suit = back = None
     def __init__(self, rank, suit, back = ""):
         self.rank = rank
@@ -122,11 +136,26 @@ class Card:
         elif self.rank == Rank.JOKER:
             return 2
         return 0
-    def get_HTML(self) -> str:
-        s = '<span style="color:'+str(self.get_color())+'">'
-        s += self.get_unicode()
-        s += '</span>'
+    def get_HTML(self, type="png") -> str:
+        match type:
+            case "png":
+                image_path = "handnfoot/pcassets/png"
+                file_name = self.get_name_for_file()
+                s = f'<span class="cardtable_card"><img src="{image_path}/{file_name}.png"></span>'
+            case "unicode":
+                s = '<span style="background:white;color:'+str(self.get_color())+'">'
+                s += self.get_unicode()
+                s += '</span>'
+            case _:
+                raise("Unknown get_HTML type")
         return s
+    def get_name_for_file(self) -> str:
+        if self.suit == Suit.RED or self.suit == Suit.BLACK:
+            s = self.suit.get_name_for_file() + "_" + self.rank.get_name_for_file()
+        else:
+            s = self.rank.get_name_for_file() + "_of_" + self.suit.get_name_for_file()
+        return s
+
     def get_unicode(self) -> str:
         if self.suit == Suit.RED:
             if self.rank is not Rank.JOKER: raise ValueError("Unexpected rank for Suit.RED: "+self.rank)
@@ -157,11 +186,11 @@ class Card:
     def parse(cls, shorthand, back = "") -> Card:
         return cls(Rank.parse(shorthand[0]), Suit.parse(shorthand[1]), back)
 
-"""
-Defines a pack of cards, i.e. a deck that comes scrinkwrapped.
-For a group of cards stacked as a deck, see Pile.
-"""
 class Pack:
+    """
+    Defines a pack of cards, i.e. a deck that comes scrinkwrapped.
+    For a group of cards stacked as a deck, see Pile.
+    """
     back = cards = None
     def __init__(self, back = None):
         if back == None:
@@ -178,6 +207,10 @@ class Pack:
         return Pile(self.cards)
 
 class Meld(list):
+    """ Represents a set of cards that match.
+
+    RANKCOLOR meld are cards that have the same rank (value) and color (red or black)
+    """
     RANKCOLOR = 1
     def __init__(self, method, cards = []):
         self.method = method
@@ -256,10 +289,12 @@ class CardGroup():
         else:
             raise ValueError("Unknown calc_entropy method: "+str(method))
 
-"""
-A stack of cards. E.g. a deck.
-"""
 class Pile(CardGroup):
+    """
+    A stack of cards. E.g. a deck.
+
+    Can be face up or face down.
+    """
     cards = face_up = None
     PERFECT_SHUFFLE = 1
     RIFFLE_SHUFFLE = 2
@@ -350,11 +385,11 @@ class Pile(CardGroup):
             cards.extend(half[0])
             cards.extend(half[1])
             self.cards = cards
-    '''
-    Custom shuffle method where multiple players shuffle many decks together
-    The method is to take a ~52 cards at a time shuffle once then trade half the cards for another set
-    '''
     def multi_quick_shuffle(self, iterations = 1, precision = 10, players = None, num_players = None, seconds = 120) -> None:
+        '''
+        Custom shuffle method where multiple players shuffle many decks together
+        The method is to take a ~52 cards at a time shuffle once then trade half the cards for another set
+        '''
         if players and num_players:
             raise ValueError("parameters players and num_players are mutually exclusive.")
         if len(self.cards) < 52:
@@ -439,6 +474,13 @@ class Hand(CardGroup):
                 keepers.append(card)
         self.cards = keepers
 
+    def get_HTML(self) -> str:
+        s = '<span class="cardtable_hand">'
+        for card in self.cards:
+            s += card.get_HTML()
+        s += '</span>'
+        return s
+
     #def sort(self, method = SUITRANK):
     #    self.cards.sort()
     #def SUITRANK(card):
@@ -456,11 +498,11 @@ class Hand(CardGroup):
         s += "]"
         return s
 
-"""
-A group of cards layed out so all can see them.
-Similar to a Hand but typically not private.
-"""
 class Fan(CardGroup):
+    """
+    A group of cards layed out so all can see them.
+    Similar to a Hand but typically not private.
+    """
     cards = None
     def __init__(self, cards = None, face_up = True):
         if cards == None: cards = list()
