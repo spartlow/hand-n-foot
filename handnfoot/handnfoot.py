@@ -38,6 +38,7 @@ class HNFGame():
         self.setup = False
         self.players = []
         self.round = 0
+        self.round_complete = False
         #self.packs = []
         #self.piles = []
         #self.table = cards.Table()
@@ -142,31 +143,45 @@ class HNFGame():
     def play_turn(self, player):
         method = cardtable.Meld.RANK
         hand = player.get_hand()
+        foot = player.get_foot()
         # draw
         self.draw(player)
         # add to down area melds and complete piles
-        if not player.hnf_is_down:
-            if self.can_lay_down(player):
-                melds = self.get_ready_melds(player)
+        keep_playing = True
+        while keep_playing:
+            if not player.hnf_is_down:
+                if self.can_lay_down(player):
+                    melds = self.get_ready_melds(player)
+                    for meld in melds:
+                        self.lay_down(player, cards = list(meld))
+            else:
+                melds = player.get_hand().get_melds(cardtable.Meld.RANK)
                 for meld in melds:
-                    self.lay_down(player, cards = list(meld))
-        else:
-            melds = player.get_hand().get_melds(cardtable.Meld.RANK)
-            for meld in melds:
-                #print(str(len(meld))+" "+meld.get_type())
-                if len(meld)>=3 or player.get_area("down").includes_meld_type(meld.get_type(), method = method) \
-                        or player.get_area("complete").includes_meld_type(meld.get_type(), method = method):
-                    self.lay_down(player, cards = list(meld))
-                #else:
-                #    print(player.get_area("down").includes_meld_type(meld.get_type(), method = method))
-            #TODO play wild cards?
-            # TODO for each meld > 3 and if down area.includes_meld then play
-            pass #TODO
-        # take foot and repeat
-        # make piles
-        # discard
-        self.discard(player)
-        pass # TODO
+                    #print(str(len(meld))+" "+meld.get_type())
+                    if len(meld)>=3 or player.get_area("down").includes_meld_type(meld.get_type(), method = method) \
+                            or player.get_area("complete").includes_meld_type(meld.get_type(), method = method):
+                        self.lay_down(player, cards = list(meld))
+                    #else:
+                    #    print(player.get_area("down").includes_meld_type(meld.get_type(), method = method))
+                #TODO play wild cards?
+                # TODO for each meld > 3 and if down area.includes_meld then play
+                pass #TODO
+            # make piles?
+            # Discard
+            if len(hand) > 0:
+                self.discard(player)
+                keep_playing = False
+            if len(hand) == 0:
+                if len(foot) == 0:
+                    logging.debug(f"Player {player.name} ends the round!")
+                    self.round_complete = True
+                else:
+                    if keep_playing:
+                        logging.debug(f"Player {player.name} picks up their foot and keeps playing!")
+                    else:
+                        logging.debug(f"Player {player.name} picks up their foot.")
+                    hand.add(foot.remove_all_cards())
+                    player.hnf_in_foot = True
     def draw(self, player):
         # select pile
         pile_idx = self.players.index(player)
@@ -200,16 +215,16 @@ class HNFGame():
                 continue # or remove it?
             meld_type = fan.cards[0].get_meld_type(method = method)
             pile = complete_area.get_group_by_meld_type(meld_type = meld_type, method = method)
-            if not pile and len(fan.cards) >= 7:
+            if pile is None and len(fan.cards) >= 7:
                 pile = cardtable.Pile()
                 pile.face_up = True
                 pile.hnf_clean = True # TODO if has wildcards mark dirty
                 complete_area.append(pile)
-            if pile:
+            if pile is not None:
                 logging.debug(f"Player {player.name} added {cardtable.cards_to_str(fan.cards)} to a pile")
                 pile.add(fan.cards)
                 fan.cards = []
-                player.display()
+                #player.display()
         down_area.remove_empty_groups()
     def get_card_desirability(self, strategy, card, meld_size):
         """ Preference:

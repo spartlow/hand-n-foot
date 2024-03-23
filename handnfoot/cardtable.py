@@ -276,6 +276,11 @@ class CardGroup():
         self.cards.append(card)
     def pop(self) -> Card:
         return self.cards.pop()
+    def remove_all_cards(self):
+        cs = []
+        cs.extend(self.cards)
+        self.cards.clear()
+        return cs
     def sort(self, method) -> None:
         match method:
             case Meld.RANK:
@@ -297,6 +302,8 @@ class CardGroup():
                 return ((num_sets - min_sets) / (max_sets - min_sets))
             case _:
                 raise ValueError("Unknown method "+method)
+    def __len__(self):
+         return len(self.cards)
 
 class Pile(CardGroup):
     """
@@ -640,10 +647,19 @@ class Player():
                 return area
         raise ValueError("Player area not found: "+name)
     def get_hand(self):
-        hand_area = self.get_area("hand")
-        if len(hand_area.groups) != 1:
+        area = self.get_area("hand")
+        if area is None:
+            raise ValueError("No hand found")
+        if len(area.groups) != 1:
             raise ValueError("Expected one hand")
-        return hand_area.groups[0]
+        return area.groups[0]
+    def get_foot(self):
+        area = self.get_area("foot")
+        if area is None:
+            raise ValueError("No foot found")
+        if len(area.groups) != 1:
+            raise ValueError("Expected one foot")
+        return area.groups[0]
     def display(self):
             print(self.name+":")
             self.display_areas()
