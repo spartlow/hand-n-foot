@@ -23,12 +23,34 @@ class Strategy(SimpleNamespace):
 class HNFRules():
     DIRTY_MAX_MINORITY = 1 # Wilds need to be minority of cards in fan
     def __init__(self):
-        allow_discard_to_end_last_round = False
-        allow_melds_of_threes = False
-        allow_melds_of_wilds = False
-        allow_add_wilds_to_existing_piles = False
-        dirty_wildcard_max_rule = self.DIRTY_MAX_MINORITY
-        pass
+        self.allow_discard_to_end_last_round = False
+        self.allow_melds_of_threes = True
+        self.allow_melds_of_wilds = False
+        self.allow_add_wilds_to_existing_piles = False
+        self.dirty_wildcard_max_rule = self.DIRTY_MAX_MINORITY
+        self.wild_ranks = [cardtable.Rank.TWO, cardtable.Rank.JOKER]
+        self.rank_points = { \
+            cardtable.Rank.TWO:   20, \
+            cardtable.Rank.THREE:  5, \
+            cardtable.Rank.FOUR:   5, \
+            cardtable.Rank.FIVE:   5, \
+            cardtable.Rank.SIX:    5, \
+            cardtable.Rank.SEVEN:  5, \
+            cardtable.Rank.EIGHT:  5, \
+            cardtable.Rank.NINE:   5, \
+            cardtable.Rank.TEN:   10, \
+            cardtable.Rank.JACK:  10, \
+            cardtable.Rank.QUEEN: 10, \
+            cardtable.Rank.KING:  10, \
+            cardtable.Rank.ACE:   20, \
+            cardtable.Rank.JOKER: 50}
+    def card_is_wild(self, card):
+        return (card.rank in self.wild_ranks)
+    def get_card_points(self, card):
+        if card.get_shorthand() in ["3D", "3H"]:
+            return -300
+        else:
+            return self.rank_points[card.rank]
     @classmethod
     def round_starting_points(cls, round):
         return [50, 75, 100, 150][round - 1]
