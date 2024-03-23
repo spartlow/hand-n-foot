@@ -129,13 +129,18 @@ class Card:
         elif self.rank == Rank.JOKER:
             return 2
         return 0
-    def get_HTML(self) -> str:
-        #s = '<span style="color:'+str(self.get_color())+'">'
-        #s += self.get_unicode()
-        #s += '</span>'
-        image_path = "handnfoot/pcassets/png"
-        file_name = self.get_name_for_file()
-        s = f'<span class="cardtable_card"><img src="{image_path}/{file_name}.png"></span>'
+    def get_HTML(self, type="png") -> str:
+        match type:
+            case "png":
+                image_path = "handnfoot/pcassets/png"
+                file_name = self.get_name_for_file()
+                s = f'<span class="cardtable_card"><img src="{image_path}/{file_name}.png"></span>'
+            case "unicode":
+                s = '<span style="background:white;color:'+str(self.get_color())+'">'
+                s += self.get_unicode()
+                s += '</span>'
+            case _:
+                raise("Unknown get_HTML type")
         return s
     def get_name_for_file(self) -> str:
         if self.suit == Suit.RED or self.suit == Suit.BLACK:
