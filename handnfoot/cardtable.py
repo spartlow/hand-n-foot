@@ -462,6 +462,13 @@ class Hand(CardGroup):
                 keepers.append(card)
         self.cards = keepers
 
+    def get_HTML(self) -> str:
+        s = '<span class="cardtable_hand">'
+        for card in self.cards:
+            s += card.get_HTML()
+        s += '</span>'
+        return s
+    
     #def sort(self, method = SUITRANK):
     #    self.cards.sort()
     #def SUITRANK(card):

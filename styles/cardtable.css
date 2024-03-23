@@ -1,11 +1,19 @@
 
+.cardtable_hand {
+    padding-right: 50px; /* Leave room for last card overflow */
+}
+
+.cardtable_hand .cardtable_card {
+    overflow: visible;
+    width: 20px;
+}
 
 .cardtable_card {
-    display:inline-block; 
+    display: inline-block; 
+}
+.cardtable_card img {
     background-color:white; 
     border-radius: 5px; 
     border: solid 1px black;
-}
-.cardtable_card {
     width: 70px;
 }
