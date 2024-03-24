@@ -29,6 +29,7 @@ class HNFRules():
         self.allow_add_wilds_to_existing_piles = False
         self.dirty_wildcard_max_rule = self.DIRTY_MAX_MINORITY
         self.wild_ranks = [cardtable.Rank.TWO, cardtable.Rank.JOKER]
+        cardtable.Modifiers.set_wild_ranks(self.wild_ranks)
         self.rank_points = { \
             cardtable.Rank.TWO:   20, \
             cardtable.Rank.THREE:  5, \

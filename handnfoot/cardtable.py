@@ -136,6 +136,8 @@ class Card:
         elif self.rank == Rank.JOKER:
             return 2
         return 0
+    def is_wild(self):
+        return (Modifiers.card_is_wild(self))
     def get_HTML(self, type="png") -> str:
         match type:
             case "png":
@@ -185,6 +187,13 @@ class Card:
     @classmethod
     def parse(cls, shorthand, back = "") -> Card:
         return cls(Rank.parse(shorthand[0]), Suit.parse(shorthand[1]), back)
+    @classmethod
+    def get_wilds(cls, cards) -> typing.List['Card']:
+        wilds = []
+        for card in cards:
+            if card.is_wild():
+                wilds.append(card)
+        return wilds
 
 class Pack:
     """
@@ -227,13 +236,16 @@ class Meld(list):
             return None
     @classmethod
     def get_card_meld_type(cls, card, method) -> str:
-        match method:
-            case cls.RANK:
-                meld_type = card.rank.get_shorthand()
-            case cls.RANKCOLOR:
-                meld_type = card.rank.get_shorthand() + str(card.get_color())
-            case _:
-                raise ValueError("Unknown method "+method)
+        if card.is_wild():
+            meld_type = "WILD"
+        else:
+            match method:
+                case cls.RANK:
+                    meld_type = card.rank.get_shorthand()
+                case cls.RANKCOLOR:
+                    meld_type = card.rank.get_shorthand() + str(card.get_color())
+                case _:
+                    raise ValueError("Unknown method "+method)
         return meld_type
     @classmethod
     def cards_include_meld_type(cls, cards, meld_type, method) -> Boolean:
@@ -242,16 +254,18 @@ class Meld(list):
                 return True
         return False
     @classmethod
-    def get_melds(cls, cards, method) -> typing.List['Meld']:
+    def get_melds(cls, cards, method, exclude_wilds=False) -> typing.List['Meld']:
         if len(cards) == 0:
             return []
         melds = dict()
         for card in cards:
             meld_type = cls.get_card_meld_type(card, method)
+            if meld_type == "WILDS" and exclude_wilds:
+                continue
             if meld_type not in melds:
                 melds[meld_type] = Meld(method = method)
             melds[meld_type].append(card)
-        return list(melds.values())
+        return list(melds.values()) # Return just the melds, not their type names
 
 
 class CardGroup():
@@ -262,6 +276,8 @@ class CardGroup():
         return str(self)
     def get_melds(self, method) -> typing.List['Meld']:
         return Meld.get_melds(cards = self.cards, method = method)
+    def get_wilds(self) -> typing.List['Card']:
+        return Card.get_wilds(cards = self.cards)
     def count_melds(self, method) -> int:
         return len(self.get_melds(method))
     def includes_meld_type(self, meld_type, method) -> Boolean:
@@ -682,6 +698,21 @@ def cards_to_str(cards) -> str:
             s += "["+card.get_shorthand()
     s += "]"
     return s
+
+# A bit of a hack but not sure the best way to do this:
+class Modifiers():
+    meld_method = None
+    wild_ranks = []
+    @classmethod
+    def set_meld_method(cls, method):
+        cls.meld_method = method
+    @classmethod
+    def set_wild_ranks(cls, ranks):
+        cls.wild_ranks = ranks
+    @classmethod
+    def card_is_wild(cls, card):
+        return (card.rank in cls.wild_ranks)
+
 
 
 '''

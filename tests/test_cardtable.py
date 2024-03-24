@@ -91,5 +91,19 @@ def test_includes_meld():
         meld_type = meld_type = card.get_meld_type(method = method)
         assert not area.includes_meld_type(meld_type = meld_type, method = method)
 
+def test_get_wilds():
+    cardtable.Modifiers.set_wild_ranks([cardtable.Rank.TWO, cardtable.Rank.JOKER])
+    group = cardtable.Hand()
+    group.add([
+        cardtable.Card.parse("4H"),
+        cardtable.Card.parse("9S"),
+        cardtable.Card.parse("*B"),
+        cardtable.Card.parse("JD"),
+        cardtable.Card.parse("2C"),
+        cardtable.Card.parse("9C")])
+    wilds = group.get_wilds()
+    assert [card.get_shorthand() for card in wilds] == ["*B", "2C"]
+
+
 if __name__ == "__main__":
     pytest.main([__file__])
