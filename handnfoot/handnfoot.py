@@ -28,8 +28,8 @@ class HNFRules():
         self.allow_melds_of_wilds = False
         self.allow_add_wilds_to_existing_piles = False
         self.dirty_wildcard_max_rule = self.DIRTY_MAX_MINORITY
-        self.wild_ranks = [cardtable.Rank.TWO, cardtable.Rank.JOKER]
-        cardtable.Modifiers.set_wild_ranks(self.wild_ranks)
+        cardtable.Modifiers.set_wild_ranks([cardtable.Rank.TWO, cardtable.Rank.JOKER])
+        cardtable.Modifiers.set_meld_method(cardtable.Meld.RANK)
         self.rank_points = { \
             cardtable.Rank.TWO:   20, \
             cardtable.Rank.THREE:  5, \
@@ -45,8 +45,6 @@ class HNFRules():
             cardtable.Rank.KING:  10, \
             cardtable.Rank.ACE:   20, \
             cardtable.Rank.JOKER: 50}
-    def card_is_wild(self, card):
-        return (card.rank in self.wild_ranks)
     def get_card_points(self, card):
         if card.get_shorthand() in ["3D", "3H"]:
             return -300
@@ -228,7 +226,7 @@ class HNFGame():
         hand = player.get_hand()
         down_area = player.get_area(name = "down")
         hand.remove_cards(cards)
-        down_area.add_to_group_by_meld_type(cards = cards, method = cardtable.Meld.RANK, group_cls = cardtable.Fan)
+        down_area.add_to_group_by_meld_type(cards = cards, group_cls = cardtable.Fan, method = cardtable.Meld.RANK)
         self.add_fans_to_piles(player = player)
         #TODO check that fans have at least 3.
         player.hnf_is_down = True

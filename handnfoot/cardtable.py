@@ -182,7 +182,9 @@ class Card:
                 code += self.rank.value + 1 #skip the "Knight" card
         #print(code)
         return chr(code)
-    def get_meld_type(self, method) -> str:
+    def get_meld_type(self, method=None) -> str:
+        if method is None:
+            method = Modifiers.meld_method
         return Meld.get_card_meld_type(self, method)
     @classmethod
     def parse(cls, shorthand, back = "") -> Card:
@@ -223,7 +225,9 @@ class Meld(list):
     """
     RANK = 1
     RANKCOLOR = 2
-    def __init__(self, method, cards = []):
+    def __init__(self, method=None, cards = []):
+        if method is None:
+            method = Modifiers.meld_method
         self.method = method
         if cards:
             super(Meld, self).__init__(cards)
@@ -235,7 +239,9 @@ class Meld(list):
         else:
             return None
     @classmethod
-    def get_card_meld_type(cls, card, method) -> str:
+    def get_card_meld_type(cls, card, method=None) -> str:
+        if method is None:
+            method = Modifiers.meld_method
         if card.is_wild():
             meld_type = "WILD"
         else:
@@ -248,13 +254,17 @@ class Meld(list):
                     raise ValueError("Unknown method "+method)
         return meld_type
     @classmethod
-    def cards_include_meld_type(cls, cards, meld_type, method) -> Boolean:
+    def cards_include_meld_type(cls, cards, meld_type, method=None) -> Boolean:
+        if method is None:
+            method = Modifiers.meld_method
         for card in cards:
             if Meld.get_card_meld_type(card, method) == meld_type:
                 return True
         return False
     @classmethod
-    def get_melds(cls, cards, method, exclude_wilds=False) -> typing.List['Meld']:
+    def get_melds(cls, cards, method=None, exclude_wilds=False) -> typing.List['Meld']:
+        if method is None:
+            method = Modifiers.meld_method
         if len(cards) == 0:
             return []
         melds = dict()
@@ -274,13 +284,19 @@ class CardGroup():
         return len(self.cards)
     def __str__(self) -> str:
         return str(self)
-    def get_melds(self, method) -> typing.List['Meld']:
+    def get_melds(self, method=None) -> typing.List['Meld']:
+        if method is None:
+            method = Modifiers.meld_method
         return Meld.get_melds(cards = self.cards, method = method)
     def get_wilds(self) -> typing.List['Card']:
         return Card.get_wilds(cards = self.cards)
-    def count_melds(self, method) -> int:
+    def count_melds(self, method=None) -> int:
+        if method is None:
+            method = Modifiers.meld_method
         return len(self.get_melds(method))
-    def includes_meld_type(self, meld_type, method) -> Boolean:
+    def includes_meld_type(self, meld_type, method=None) -> Boolean:
+        if method is None:
+            method = Modifiers.meld_method
         return Meld.cards_include_meld_type(cards = self.cards, meld_type = meld_type, method = method)
     def add(self, cards) -> None:
         if isinstance(cards, CardGroup):
@@ -297,7 +313,9 @@ class CardGroup():
         cs.extend(self.cards)
         self.cards.clear()
         return cs
-    def sort(self, method) -> None:
+    def sort(self, method=None) -> None:
+        if method is None:
+            method = Modifiers.meld_method
         match method:
             case Meld.RANK:
                 self.cards.sort(key=lambda card: card.rank.get_shorthand())
@@ -305,7 +323,9 @@ class CardGroup():
                 self.cards.sort(key=lambda card: card.rank.get_shorthand()+str(card.get_color()))
             case _:
                 raise ValueError("Unknown method "+method)
-    def calc_entropy(self, method) -> float:
+    def calc_entropy(self, method=None) -> float:
+        if method is None:
+            method = Modifiers.meld_method
         # See https://stackoverflow.com/questions/19434884/determining-how-well-a-deck-is-shuffled
         match method:
             case Meld.RANK | Meld.RANKCOLOR:
@@ -596,17 +616,23 @@ class PlayingArea():
         for area in areas:
             self.groups.extend(area.groups)
             area.groups = []
-    def includes_meld_type(self, meld_type, method):
+    def includes_meld_type(self, meld_type, method=None):
+        if method is None:
+            method = Modifiers.meld_method
         for group in self.groups:
             if group.includes_meld_type(meld_type = meld_type, method = method):
                 return True
         return False
-    def get_group_by_meld_type(self, meld_type, method):
+    def get_group_by_meld_type(self, meld_type, method=None):
+        if method is None:
+            method = Modifiers.meld_method
         for group in self.groups:
             if group.cards and group.cards[0].get_meld_type(method = method) == meld_type:
                 return group
         return None
-    def add_to_group_by_meld_type(self, cards, method, group_cls) -> None:
+    def add_to_group_by_meld_type(self, cards, group_cls, method=None) -> None:
+        if method is None:
+            method = Modifiers.meld_method
         for card in cards:
             group = self.get_group_by_meld_type(meld_type = card.get_meld_type(method = method), method = method)
             if not group:

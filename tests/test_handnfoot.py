@@ -20,12 +20,12 @@ def test_card_points():
 
 def test_card_is_wild():
     rules = handnfoot.HNFRules()
-    assert rules.card_is_wild(cardtable.Card(cardtable.Rank.JOKER, cardtable.Suit.RED)) == True
-    assert rules.card_is_wild(cardtable.Card(cardtable.Rank.TWO, cardtable.Suit.SPADES)) == True
-    assert rules.card_is_wild(cardtable.Card(cardtable.Rank.TWO, cardtable.Suit.HEARTS)) == True
-    assert rules.card_is_wild(cardtable.Card(cardtable.Rank.THREE, cardtable.Suit.DIAMONDS)) == False
-    assert rules.card_is_wild(cardtable.Card(cardtable.Rank.KING, cardtable.Suit.CLUBS)) == False
-    assert rules.card_is_wild(cardtable.Card(cardtable.Rank.ACE, cardtable.Suit.HEARTS)) == False
+    assert (cardtable.Card(cardtable.Rank.JOKER, cardtable.Suit.RED)).is_wild() == True
+    assert (cardtable.Card(cardtable.Rank.TWO, cardtable.Suit.SPADES)).is_wild() == True
+    assert (cardtable.Card(cardtable.Rank.TWO, cardtable.Suit.HEARTS)).is_wild() == True
+    assert (cardtable.Card(cardtable.Rank.THREE, cardtable.Suit.DIAMONDS)).is_wild() == False
+    assert (cardtable.Card(cardtable.Rank.KING, cardtable.Suit.CLUBS)).is_wild() == False
+    assert (cardtable.Card(cardtable.Rank.ACE, cardtable.Suit.HEARTS)).is_wild() == False
 
 if __name__ == "__main__":
     pytest.main([__file__])
