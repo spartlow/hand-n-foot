@@ -104,6 +104,22 @@ def test_get_wilds():
     wilds = group.get_wilds()
     assert [card.get_shorthand() for card in wilds] == ["*B", "2C"]
 
+def test_get_melds():
+    # Setup
+    cardtable.Modifiers.set_wild_ranks([cardtable.Rank.TWO, cardtable.Rank.JOKER])
+    cardtable.Modifiers.set_meld_method(cardtable.Meld.RANK)
+    cards = [cardtable.Card.parse("4H"),
+        cardtable.Card.parse("9S"),
+        cardtable.Card.parse("JH"),
+        cardtable.Card.parse("2H"),
+        cardtable.Card.parse("9H")]
+    hand = cardtable.Hand(cards = cards)
+
+    melds = hand.get_melds(exclude_wilds=True)
+    assert len(melds) == 3
+    assert melds[0].get_type() == "4"
+    assert melds[1].get_type() == "9"
+    assert melds[2].get_type() == "J"
 
 if __name__ == "__main__":
     pytest.main([__file__])

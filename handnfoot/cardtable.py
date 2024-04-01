@@ -251,7 +251,7 @@ class Meld(list):
                 case cls.RANKCOLOR:
                     meld_type = card.rank.get_shorthand() + str(card.get_color())
                 case _:
-                    raise ValueError("Unknown method "+method)
+                    raise ValueError("Unknown method "+str(method))
         return meld_type
     @classmethod
     def cards_include_meld_type(cls, cards, meld_type, method=None) -> Boolean:
@@ -270,7 +270,7 @@ class Meld(list):
         melds = dict()
         for card in cards:
             meld_type = cls.get_card_meld_type(card, method)
-            if meld_type == "WILDS" and exclude_wilds:
+            if meld_type == "WILD" and exclude_wilds:
                 continue
             if meld_type not in melds:
                 melds[meld_type] = Meld(method = method)
@@ -284,16 +284,16 @@ class CardGroup():
         return len(self.cards)
     def __str__(self) -> str:
         return str(self)
-    def get_melds(self, method=None) -> typing.List['Meld']:
+    def get_melds(self, method=None, exclude_wilds=False) -> typing.List['Meld']:
         if method is None:
             method = Modifiers.meld_method
-        return Meld.get_melds(cards = self.cards, method = method)
+        return Meld.get_melds(cards = self.cards, method = method, exclude_wilds=exclude_wilds)
     def get_wilds(self) -> typing.List['Card']:
         return Card.get_wilds(cards = self.cards)
-    def count_melds(self, method=None) -> int:
+    def count_melds(self, method=None, exclude_wilds=False) -> int:
         if method is None:
             method = Modifiers.meld_method
-        return len(self.get_melds(method))
+        return len(self.get_melds(method), exclude_wilds = exclude_wilds)
     def includes_meld_type(self, meld_type, method=None) -> Boolean:
         if method is None:
             method = Modifiers.meld_method
@@ -322,7 +322,7 @@ class CardGroup():
             case Meld.RANKCOLOR:
                 self.cards.sort(key=lambda card: card.rank.get_shorthand()+str(card.get_color()))
             case _:
-                raise ValueError("Unknown method "+method)
+                raise ValueError("Unknown method "+str(method))
     def calc_entropy(self, method=None) -> float:
         if method is None:
             method = Modifiers.meld_method
@@ -337,7 +337,7 @@ class CardGroup():
                     return 1.0
                 return ((num_sets - min_sets) / (max_sets - min_sets))
             case _:
-                raise ValueError("Unknown method "+method)
+                raise ValueError("Unknown method "+str(method))
     def __len__(self):
          return len(self.cards)
 
@@ -589,6 +589,8 @@ class PlayingArea():
         self.name = name
         if groups == None: groups = list()
         self.groups = groups
+    def get_groups(self):
+        return self.groups.copy()
     def combine_groups(self):
         pile = Pile()
         for group in self.groups:
@@ -630,11 +632,15 @@ class PlayingArea():
             if group.cards and group.cards[0].get_meld_type(method = method) == meld_type:
                 return group
         return None
-    def add_to_group_by_meld_type(self, cards, group_cls, method=None) -> None:
+    def add_to_group_by_meld_type(self, cards, group_cls, method=None, meld_type=None) -> None:
         if method is None:
             method = Modifiers.meld_method
         for card in cards:
-            group = self.get_group_by_meld_type(meld_type = card.get_meld_type(method = method), method = method)
+            if meld_type:
+                card_meld_type = meld_type
+            else:
+                card_meld_type = card.get_meld_type(method = method)
+            group = self.get_group_by_meld_type(meld_type = card_meld_type, method = method)
             if not group:
                 group = group_cls()
                 self.groups.append(group)

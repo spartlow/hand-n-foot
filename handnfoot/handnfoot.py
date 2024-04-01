@@ -173,20 +173,50 @@ class HNFGame():
         keep_playing = True
         while keep_playing:
             if not player.hnf_is_down:
+                # TODO combine with below?
                 if self.can_lay_down(player):
                     melds = self.get_ready_melds(player)
                     for meld in melds:
-                        self.lay_down(player, cards = list(meld))
+                        self.lay_down_meld(player, meld = meld)
             else:
-                melds = player.get_hand().get_melds(cardtable.Meld.RANK)
+                melds = hand.get_melds(method = cardtable.Meld.RANK, exclude_wilds = True)
+                singleton_cnt = 0
+                pair_cnt = 0
                 for meld in melds:
                     #print(str(len(meld))+" "+meld.get_type())
                     if len(meld)>=3 or player.get_area("down").includes_meld_type(meld.get_type(), method = method) \
                             or player.get_area("complete").includes_meld_type(meld.get_type(), method = method):
-                        self.lay_down(player, cards = list(meld))
-                    #else:
+                        self.lay_down_meld(player, meld = meld)
+                    else:
+                        if len(meld) == 1:
+                            singleton_cnt += 1
+                        elif len(meld) == 2:
+                            pair_cnt += 1
+                        else:
+                            raise ValueError("Unexpected leftover meld length of "+len(meld))
                     #    print(player.get_area("down").includes_meld_type(meld.get_type(), method = method))
                 #TODO play wild cards?
+                wilds = hand.get_wilds()
+                if len(wilds) > 0:
+                    if len(wilds) == pair_cnt and singleton_cnt == 0:
+                        melds = hand.get_melds(cardtable.Meld.RANK, exclude_wilds = True)
+                        for meld in melds:
+                            if len(meld) != 2:
+                                raise ValueError("Unexpected pair meld length of "+len(meld))
+                            meld.append(wilds.pop()) # TODO use highest value wild
+                            self.lay_down_meld(player, meld = meld)
+                    elif pair_cnt == 0 and singleton_cnt == 0:
+                        # dirty some piles
+                        down_groups = player.get_area(name = "down").get_groups()
+                        down_groups.sort(key=len)
+                        for group in down_groups:
+                            meld_type = group.cards[0].get_meld_type()
+                            # TODO need to check if can handle that many wilds
+                            # TODO add wilds to dirty fans first
+                            self.lay_down_cards_by_meld(player, wilds.pop(), meld_type = meld_type)
+                            if len(wilds) == 0:
+                                break
+
                 # TODO for each meld > 3 and if down area.includes_meld then play
                 pass #TODO
             # make piles?
@@ -221,12 +251,26 @@ class HNFGame():
         logging.debug(f"Player {player.name} draws {cardtable.cards_to_str(cards)}")
         player.get_hand().add(cards)
         player.get_hand().sort(method = cardtable.Meld.RANK)
-    def lay_down(self, player, cards):
-        logging.debug(f"Player {player.name} lays down {cardtable.cards_to_str(cards)}")
+    def lay_down_meld(self, player, meld):
+        cards = list(meld)
+        meld_type = meld.get_type()
+        if meld_type == "WILD":
+            raise ValueError("Trying to lay down wild meld")
+        logging.debug(f"Player {player.name} lays down {cardtable.cards_to_str(cards)} of type {cards[0].get_meld_type(method=cardtable.Meld.RANK)}")
         hand = player.get_hand()
         down_area = player.get_area(name = "down")
         hand.remove_cards(cards)
-        down_area.add_to_group_by_meld_type(cards = cards, group_cls = cardtable.Fan, method = cardtable.Meld.RANK)
+        down_area.add_to_group_by_meld_type(cards = cards, group_cls = cardtable.Fan, meld_type = meld_type, method = cardtable.Meld.RANK)
+        self.add_fans_to_piles(player = player)
+        #TODO check that fans have at least 3.
+        player.hnf_is_down = True
+    def lay_down_card_by_meld(self, player, card, meld_type):
+        cards = [card]
+        logging.debug(f"Player {player.name} lays down card {cardtable.cards_to_str(cards)}")
+        hand = player.get_hand()
+        down_area = player.get_area(name = "down")
+        hand.remove_cards(cards)
+        down_area.add_to_group_by_meld_type(cards = cards, group_cls = cardtable.Fan, meld_type = meld_type, method = cardtable.Meld.RANK)
         self.add_fans_to_piles(player = player)
         #TODO check that fans have at least 3.
         player.hnf_is_down = True
@@ -284,8 +328,7 @@ class HNFGame():
 
         pass #TODO
     def get_ready_melds(self, player):
-        melds = player.get_hand().get_melds(cardtable.Meld.RANK)
-        # TODO need to take into account wilds. They can't form meld
+        melds = player.get_hand().get_melds(cardtable.Meld.RANK, exclude_wilds = True)
         ready = []
         for meld in melds:
             if len(meld) >= 3:
