@@ -45,7 +45,7 @@ class HNFRules():
             cardtable.Rank.KING:  10, \
             cardtable.Rank.ACE:   20, \
             cardtable.Rank.JOKER: 50}
-    def get_card_points(self, card):
+    def xget_card_points(self, card):
         if card.get_shorthand() in ["3D", "3H"]:
             return -300
         else:
@@ -60,6 +60,7 @@ class HNFGame():
         self.players = []
         self.round = 0
         self.round_complete = False
+        self.rules = HNFRules()
         #self.packs = []
         #self.piles = []
         #self.table = cards.Table()
@@ -213,7 +214,7 @@ class HNFGame():
                             meld_type = group.cards[0].get_meld_type()
                             # TODO need to check if can handle that many wilds
                             # TODO add wilds to dirty fans first
-                            self.lay_down_cards_by_meld(player, wilds.pop(), meld_type = meld_type)
+                            self.lay_down_card_by_meld(player, wilds.pop(), meld_type = meld_type)
                             if len(wilds) == 0:
                                 break
 
