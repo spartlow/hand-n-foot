@@ -201,22 +201,38 @@ class HNFGame():
                 #TODO play wild cards?
                 wilds = hand.get_wilds()
                 if len(wilds) > 0:
-                    if len(wilds) == pair_cnt and singleton_cnt == 0:
+                    if len(wilds) >= pair_cnt and singleton_cnt <= 1:
+                        logging.debug(f"Player {player.name} laying down with wilds.")
                         melds = hand.get_melds(cardtable.Meld.RANK, exclude_wilds = True)
                         for meld in melds:
+                            if len(meld) == 1:
+                                continue
                             if len(meld) != 2:
-                                raise ValueError("Unexpected pair meld length of "+len(meld))
+                                raise ValueError(f"Unexpected pair meld length of {len(meld)}")
                             meld.append(wilds.pop()) # TODO use highest value wild
                             self.lay_down_meld(player, meld = meld)
-                    elif pair_cnt == 0 and singleton_cnt == 0:
-                        # dirty some piles
+                            pair_cnt -= 1
+                    if len(wilds) > 0 and pair_cnt == 0 and singleton_cnt <= 1:
+                        logging.debug(f"Player {player.name} adding wilds.")
+                        # Add wilds to fans
                         down_groups = player.get_area(name = "down").get_groups()
-                        down_groups.sort(key=len)
+                        down_groups.sort(key=len, reverse=True) # sort largest to smallest
+                        # Add to fans that are already dirty
                         for group in down_groups:
                             meld_type = group.cards[0].get_meld_type()
-                            # TODO need to check if can handle that many wilds
-                            # TODO add wilds to dirty fans first
-                            self.lay_down_card_by_meld(player, wilds.pop(), meld_type = meld_type)
+                            if group.count_wilds() == 0:
+                                continue # Don't dirty a clean pile, yet
+                            for _ in range(min(len(wilds), HNFGame.group_wild_deficit(group))):
+                                self.lay_down_card_by_meld(player, wilds.pop(), meld_type = meld_type)
+                            if len(wilds) == 0:
+                                break
+                        # Add to any fan
+                        down_groups = player.get_area(name = "down").get_groups()
+                        down_groups.sort(key=len) # sort smallest to largest (to preserve clean piles)
+                        for group in down_groups:
+                            meld_type = group.cards[0].get_meld_type()
+                            for _ in range(min(len(wilds), HNFGame.group_wild_deficit(group))):
+                                self.lay_down_card_by_meld(player, wilds.pop(), meld_type = meld_type)
                             if len(wilds) == 0:
                                 break
 
@@ -269,7 +285,9 @@ class HNFGame():
         player.hnf_is_down = True
     def lay_down_card_by_meld(self, player, card, meld_type):
         cards = [card]
-        logging.debug(f"Player {player.name} lays down card {cardtable.cards_to_str(cards)}")
+        logging.debug(f"Player {player.name} lays down card {cardtable.cards_to_str(cards)} of type {meld_type}")
+        if meld_type == "WILD":
+            raise ValueError("Trying to lay down wild card")
         hand = player.get_hand()
         down_area = player.get_area(name = "down")
         hand.remove_cards(cards)
@@ -338,6 +356,7 @@ class HNFGame():
                 ready.append(meld)
         return ready
     def can_lay_down(self, player):
+        return True # TODO check round lay down points including wilds
         melds = self.get_ready_melds(player)
         # TODO need to take into account wilds
         points = 0
@@ -350,11 +369,11 @@ class HNFGame():
         self.game_setup()
         self.round_setup()
     @classmethod
-    def fan_wild_deficit(cls, fan) -> int:
-        card_cnt = len(fan)
+    def group_wild_deficit(cls, group) -> int:
+        card_cnt = len(group)
         if card_cnt == 0:
             return 0
-        wild_cnt = fan.count_wilds()
+        wild_cnt = group.count_wilds()
         non_wild_cnt = card_cnt - wild_cnt
         return min(non_wild_cnt - 1, MIN_PILE_SIZE - card_cnt)
 
