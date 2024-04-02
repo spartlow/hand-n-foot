@@ -196,6 +196,13 @@ class Card:
             if card.is_wild():
                 wilds.append(card)
         return wilds
+    @classmethod
+    def count_wilds(cls, cards) -> int:
+        wild_cnt = 0
+        for card in cards:
+            if card.is_wild():
+                wild_cnt += 1
+        return wild_cnt
 
 class Pack:
     """
@@ -290,6 +297,8 @@ class CardGroup():
         return Meld.get_melds(cards = self.cards, method = method, exclude_wilds=exclude_wilds)
     def get_wilds(self) -> typing.List['Card']:
         return Card.get_wilds(cards = self.cards)
+    def count_wilds(self) -> int:
+        return Card.count_wilds(self.cards)
     def count_melds(self, method=None, exclude_wilds=False) -> int:
         if method is None:
             method = Modifiers.meld_method
