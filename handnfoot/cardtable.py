@@ -160,11 +160,11 @@ class Card:
 
     def get_unicode(self) -> str:
         if self.suit == Suit.RED:
-            if self.rank is not Rank.JOKER: raise ValueError("Unexpected rank for Suit.RED: "+self.rank)
-            code = int("F0BF")
+            if self.rank is not Rank.JOKER: raise ValueError("Unexpected rank for Suit.RED: "+str(self.rank))
+            code = int("1F0BF", 16)
         elif self.suit == Suit.BLACK:
-            if self.rank is not Rank.JOKER: raise ValueError("Unexpected rank for Suit.BLACK: "+self.rank)
-            code = int("F0DF")
+            if self.rank is not Rank.JOKER: raise ValueError("Unexpected rank for Suit.BLACK: "+str(self.rank))
+            code = int("1F0DF", 16)
         else:
             if self.suit == Suit.SPADES:
                 #code = u"\x1f0\xa0"
