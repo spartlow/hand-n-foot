@@ -6,6 +6,8 @@ import logging
 from types import SimpleNamespace
 from . import cardtable
 
+MIN_PILE_SIZE = 7
+
 class Strategy(SimpleNamespace):
     DRAW_CLOSEST = 1
     DRAW_RANDOM = 2
@@ -284,7 +286,7 @@ class HNFGame():
                 continue # or remove it?
             meld_type = fan.cards[0].get_meld_type(method = method)
             pile = complete_area.get_group_by_meld_type(meld_type = meld_type, method = method)
-            if pile is None and len(fan.cards) >= 7:
+            if pile is None and len(fan.cards) >= MIN_PILE_SIZE:
                 pile = cardtable.Pile()
                 pile.face_up = True
                 pile.hnf_clean = True # TODO if has wildcards mark dirty
@@ -347,6 +349,14 @@ class HNFGame():
     def start(self):
         self.game_setup()
         self.round_setup()
+    @classmethod
+    def fan_wild_deficit(cls, fan) -> int:
+        card_cnt = len(fan)
+        if card_cnt == 0:
+            return 0
+        wild_cnt = fan.count_wilds()
+        non_wild_cnt = card_cnt - wild_cnt
+        return min(non_wild_cnt - 1, MIN_PILE_SIZE - card_cnt)
 
 if __name__ == "__main__":
     logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
