@@ -25,7 +25,6 @@ class Color(Enum):
     def __str__(self) -> str:
         return self.name
 
-from enum import Enum
 class Suit(Enum):
     """ Suit of the card. e.g. Hearts.
 
@@ -58,7 +57,6 @@ class Suit(Enum):
     def parse(cls, shorthand) -> Suit:
         return cls(cls._shorthands().index(shorthand) + 1)
 
-from enum import Enum
 class Rank(Enum):
     """ Rank is the number of the card. E.g. Ace, Two, Jack, etc
     """

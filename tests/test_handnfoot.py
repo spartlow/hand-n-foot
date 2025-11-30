@@ -10,13 +10,13 @@ from context import cardtable
 #from handnfoot import cardtable
 
 def test_card_points():
-    rules = handnfoot.HNFRules()
-    assert rules.get_card_points(cardtable.Card(cardtable.Rank.ACE, cardtable.Suit.SPADES)) == 20
-    assert rules.get_card_points(cardtable.Card(cardtable.Rank.TWO, cardtable.Suit.HEARTS)) == 20
-    assert rules.get_card_points(cardtable.Card(cardtable.Rank.FIVE, cardtable.Suit.SPADES)) == 5
-    assert rules.get_card_points(cardtable.Card(cardtable.Rank.THREE, cardtable.Suit.SPADES)) == 5
-    assert rules.get_card_points(cardtable.Card(cardtable.Rank.THREE, cardtable.Suit.HEARTS)) == -300
-    assert rules.get_card_points(cardtable.Card(cardtable.Rank.JOKER, cardtable.Suit.RED)) == 50
+    game = handnfoot.HNFGame()
+    assert game.get_card_points(cardtable.Card(cardtable.Rank.ACE, cardtable.Suit.SPADES)) == 20
+    assert game.get_card_points(cardtable.Card(cardtable.Rank.TWO, cardtable.Suit.HEARTS)) == 20
+    assert game.get_card_points(cardtable.Card(cardtable.Rank.FIVE, cardtable.Suit.SPADES)) == 5
+    assert game.get_card_points(cardtable.Card(cardtable.Rank.THREE, cardtable.Suit.SPADES)) == 5
+    assert game.get_card_points(cardtable.Card(cardtable.Rank.THREE, cardtable.Suit.HEARTS)) == -300
+    assert game.get_card_points(cardtable.Card(cardtable.Rank.JOKER, cardtable.Suit.RED)) == 50
 
 def test_card_is_wild():
     rules = handnfoot.HNFRules()

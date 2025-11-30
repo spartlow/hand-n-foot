@@ -76,7 +76,7 @@ class HNFGame():
         player.add_area(cardtable.PlayingArea(name="foot"))
         self.table.add_player(player)
     def get_card_points(self, card):
-        if card.rank == cardtable.Rank.THREE and card.get_color == cardtable.Color.RED:
+        if card.rank == cardtable.Rank.THREE and card.get_color() == cardtable.Color.RED:
             return -300
         if card.rank == cardtable.Rank.JOKER:
             return 50
