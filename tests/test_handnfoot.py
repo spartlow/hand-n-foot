@@ -42,7 +42,20 @@ def test_get_card_desirability():
     assert (strategy.get_card_desirability(cp("8H"), player) == strategy.get_card_desirability(cp("9H"), player))
     assert (strategy.get_card_desirability(cp("9H"), player) < strategy.get_card_desirability(cp("AH"), player))
 
-    
+def test_sort_by_desirability():
+    game = handnfoot.HNFGame()
+    player = cardtable.Player("J", precision=5, speed=1.2)
+    strategy = handnfoot.Strategy()
+    game.add_player(player, strategy)
+    game.start()
+    cp = cardtable.Card.parse
+    player.get_area("complete").append(cardtable.Pile(cards = [cp("5S"), cp("5C"), cp("5D"), cp("5S"), cp("5H"), cp("5D"), cp("5S"), cp("5C"), cp("5D")]))
+    player.get_area("down").append(cardtable.Pile(cards = [cp("6S"), cp("6C"), cp("6D"), cp("6S"), cp("6D")]))
+    player.get_hand().add([cp("7H"), cp("7H"), cp("7D"), cp("7S")])
+    cards = [cp("5H"), cp("8H"), cp("9H"), cp("AH"), cp("7C"), cp("6C"), cp("2D")]
+    sorted_cards = strategy.sort_by_desirability(cards, player)
+    print(sorted_cards)
+    assert cardtable.cards_to_str(sorted_cards) == cardtable.cards_to_str([cp("6C"), cp("7C"), cp("2D"), cp("5H"), cp("AH"), cp("8H"), cp("9H")])
 
 if __name__ == "__main__":
     pytest.main([__file__])

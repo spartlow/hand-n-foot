@@ -50,7 +50,9 @@ class Strategy(SimpleNamespace):
                 desirability +=
         # '''
         return desirability
-
+    def sort_by_desirability(self, cards: typing.List['cardtable.Card'], player: 'cardtable.Player') -> typing.List['cardtable.Card']:
+        cards = sorted(cards, key=lambda card: self.get_card_desirability(card, player), reverse=True)
+        return cards
 
 class HNFRules():
     DIRTY_MAX_MINORITY = 1 # Wilds need to be minority of cards in fan
@@ -346,23 +348,6 @@ class HNFGame():
                 fan.cards = []
                 #player.display()
         down_area.remove_empty_groups()
-    def get_card_desirability(self, strategy, card, meld_size):
-        """ Preference:
-                If have incomplete pile
-                Wild card (unless too many??)
-                If have complete pile (7+) -- how to account for wildcards in piles or potential wildcards?
-                If have ready meld (3-6)
-                If have pair (2)
-                If high card (or low if prefer low)
-                #TODO move to strategy
-        """
-        '''
-        if meld_size < 3:
-            desirability = meld_size * 1000
-            if strategy.prefer_high:
-                desirability +=
-        # '''
-        pass #TODO
     def discard(self, player):
         # Temp simple code
         hand = player.get_hand()
