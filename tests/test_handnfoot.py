@@ -27,5 +27,22 @@ def test_card_is_wild():
     assert (cardtable.Card(cardtable.Rank.KING, cardtable.Suit.CLUBS)).is_wild() == False
     assert (cardtable.Card(cardtable.Rank.ACE, cardtable.Suit.HEARTS)).is_wild() == False
 
+def test_get_card_desirability():
+    game = handnfoot.HNFGame()
+    player = cardtable.Player("J", precision=5, speed=1.2)
+    strategy = handnfoot.Strategy()
+    game.add_player(player, strategy)
+    game.start()
+    cp = cardtable.Card.parse
+    player.get_area("complete").append(cardtable.Pile(cards = [cp("5S"), cp("5C"), cp("5D"), cp("5S"), cp("5H"), cp("5D"), cp("5S"), cp("5C"), cp("5D")]))
+    player.get_area("down").append(cardtable.Pile(cards = [cp("6S"), cp("6C"), cp("6D"), cp("6S"), cp("6D")]))
+    player.get_hand().add([cp("7H"), cp("7H"), cp("7D"), cp("7S")])
+    assert (strategy.get_card_desirability(cp("5H"), player) < strategy.get_card_desirability(cp("7C"), player))
+    assert (strategy.get_card_desirability(cp("8H"), player) < strategy.get_card_desirability(cp("5H"), player))
+    assert (strategy.get_card_desirability(cp("8H"), player) == strategy.get_card_desirability(cp("9H"), player))
+    assert (strategy.get_card_desirability(cp("9H"), player) < strategy.get_card_desirability(cp("AH"), player))
+
+    
+
 if __name__ == "__main__":
     pytest.main([__file__])

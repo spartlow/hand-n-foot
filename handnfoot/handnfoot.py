@@ -2,6 +2,7 @@
   Simulate Hand and Foot card game
 """
 import random
+import typing
 import logging
 from types import SimpleNamespace
 from . import cardtable
@@ -21,6 +22,35 @@ class Strategy(SimpleNamespace):
         safe_when_hand_gt = 5
         prefer_high = True
         draw_from = self.DRAW_CLOSEST
+    def get_card_desirability(self, card: cardtable.Card, player: cardtable.Player) -> int:
+        """ Preference:
+                If have incomplete pile
+                Wild card (unless too many??)
+                If have complete pile (7+) -- how to account for wildcards in piles or potential wildcards?
+                If have ready meld (3-6)
+                If have pair (2)
+                If high card (or low if prefer low)
+        """
+        game = player.game
+        if player.get_area("down").includes_meld_type(card.get_meld_type(), method = cardtable.Meld.RANK):
+            desirability = 10000 + game.get_card_points(card)
+        elif any(meld.get_type() == card.get_meld_type() for meld in game.get_ready_melds(player)):
+            desirability = 9000
+        elif card.is_wild():
+            desirability = 8000
+        elif player.get_area("complete").includes_meld_type(card.get_meld_type(), method = cardtable.Meld.RANK):
+            desirability = 7000 + game.get_card_points(card)
+        # TODO If have pair (2)
+        else:
+            desirability = game.get_card_points(card) #TODO how to take into account NOT wanting high value cards near the end?
+        '''
+        if meld_size < 3:
+            desirability = meld_size * 1000
+            if strategy.prefer_high:
+                desirability +=
+        # '''
+        return desirability
+
 
 class HNFRules():
     DIRTY_MAX_MINORITY = 1 # Wilds need to be minority of cards in fan
@@ -68,6 +98,7 @@ class HNFGame():
         #self.table = cards.Table()
         self.table = cardtable.Table()
     def add_player(self, player, strategy):
+        player.game = self
         player.strategy = strategy
         self.players.append(player)
         player.add_area(cardtable.PlayingArea(name="complete"))
@@ -348,7 +379,7 @@ class HNFGame():
         """
 
         pass #TODO
-    def get_ready_melds(self, player):
+    def get_ready_melds(self, player) -> typing.List['cardtable.Meld']:
         melds = player.get_hand().get_melds(cardtable.Meld.RANK, exclude_wilds = True)
         ready = []
         for meld in melds:
