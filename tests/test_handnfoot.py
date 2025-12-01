@@ -54,8 +54,9 @@ def test_sort_by_desirability():
     player.get_hand().add([cp("7H"), cp("7H"), cp("7D"), cp("7S")])
     cards = [cp("5H"), cp("8H"), cp("9H"), cp("AH"), cp("7C"), cp("6C"), cp("2D")]
     sorted_cards = strategy.sort_by_desirability(cards, player)
+    expected = [cp("6C"), cp("7C"), cp("2D"), cp("5H"), cp("AH"), cp("8H"), cp("9H")]
     print(sorted_cards)
-    assert cardtable.cards_to_str(sorted_cards) == cardtable.cards_to_str([cp("6C"), cp("7C"), cp("2D"), cp("5H"), cp("AH"), cp("8H"), cp("9H")])
+    assert cardtable.cards_to_str(sorted_cards) == cardtable.cards_to_str(expected)
 
 if __name__ == "__main__":
     pytest.main([__file__])
