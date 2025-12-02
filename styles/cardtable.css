@@ -36,3 +36,20 @@ body span.cardtable_card img {
     height: 20px;
     overflow: visible;
 }
+
+.cardtable_pile {
+    display: inline-block;
+    height: 102px;
+    padding-right: 70px; /* Leave room for last card overflow */
+    overflow: visible;
+}
+
+.cardtable_pile .cardtable_card {
+    width: 2px;
+    overflow: visible;
+}
+
+.cardtable_pile .cardtable_card img {
+    border: solid 1px white;
+    box-shadow: 0px 0px 0 1px black;
+}
