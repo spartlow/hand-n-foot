@@ -7,6 +7,11 @@ import logging
 from types import SimpleNamespace
 from . import cardtable
 
+"""
+TODO:
+- Rules for min points to lay down
+"""
+
 MIN_PILE_SIZE = 7
 
 class Strategy(SimpleNamespace):
@@ -32,17 +37,24 @@ class Strategy(SimpleNamespace):
                 If high card (or low if prefer low)
         """
         game = player.game
-        if player.get_area("down").includes_meld_type(card.get_meld_type(), method = cardtable.Meld.RANK):
+        card_points = game.get_card_points(card)
+        if card_points < 0:
+            desirability = card_points
+        elif card.rank == cardtable.Rank.THREE:
+            desirability = 0
+        elif player.get_area("down").includes_meld_type(card.get_meld_type(), method = cardtable.Meld.RANK):
             desirability = 10000 + game.get_card_points(card)
         elif any(meld.get_type() == card.get_meld_type() for meld in game.get_ready_melds(player)):
             desirability = 9000
-        elif card.is_wild():
+        elif card.is_wild(): # TODO unless have too many wilds?
             desirability = 8000
         elif player.get_area("complete").includes_meld_type(card.get_meld_type(), method = cardtable.Meld.RANK):
-            desirability = 7000 + game.get_card_points(card)
+            desirability = 7000 + card_points
         # TODO If have pair (2)
         else:
-            desirability = game.get_card_points(card) #TODO how to take into account NOT wanting high value cards near the end?
+            desirability = card_points #TODO how to take into account NOT wanting high value cards near the end?
+
+        # TODO remember recent meld_types and favor those?
         '''
         if meld_size < 3:
             desirability = meld_size * 1000
@@ -353,17 +365,16 @@ class HNFGame():
         hand = player.get_hand()
         if len(hand.cards) == 0:
             raise ValueError("Can't discard from empty hand!")
+        """
         melds = hand.get_melds(method = cardtable.Meld.RANK)
         melds.sort(key=len)
         card = melds[0][0]
+        """
+        card = player.strategy.sort_by_desirability(hand.cards, player)[-1]
         hand.remove(card)
         logging.debug(f"Player {player.name} discards {card.get_shorthand()} leaving {cardtable.cards_to_str(hand.cards)}")
         self.table.get_area("discard").groups[0].push(card)
-        """
-        Get cards sorted by desirability (from strategy)
-        """
 
-        pass #TODO
     def get_ready_melds(self, player) -> typing.List['cardtable.Meld']:
         melds = player.get_hand().get_melds(cardtable.Meld.RANK, exclude_wilds = True)
         ready = []
