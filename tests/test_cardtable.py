@@ -8,6 +8,8 @@ import pytest
 from context import cardtable
 #from handnfoot import cardtable
 
+cp = cardtable.Card.parse
+
 def test_card_names():
     card = cardtable.Card(cardtable.Rank.ACE, cardtable.Suit.SPADES)
     assert str(card) == "ACE of SPADES"
@@ -120,6 +122,19 @@ def test_get_melds():
     assert melds[0].get_type() == "4"
     assert melds[1].get_type() == "9"
     assert melds[2].get_type() == "J"
+
+def test_get_cards_by_meld():
+    # Setup
+    cardtable.Modifiers.set_wild_ranks([cardtable.Rank.TWO, cardtable.Rank.JOKER])
+    cardtable.Modifiers.set_meld_method(cardtable.Meld.RANK)
+    cards = [cardtable.Card.parse("4H"),
+        cardtable.Card.parse("9S"),
+        cardtable.Card.parse("JH"),
+        cardtable.Card.parse("2H"),
+        cardtable.Card.parse("9H")]
+    hand = cardtable.Hand(cards = cards)
+
+    assert str(hand.get_cards_by_meld(cp("9D").get_meld_type())) == str([cp("9S"), cp("9H")])
 
 if __name__ == "__main__":
     pytest.main([__file__])

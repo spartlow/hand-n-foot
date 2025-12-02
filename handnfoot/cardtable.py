@@ -281,6 +281,13 @@ class Meld(list):
                 melds[meld_type] = Meld(method = method)
             melds[meld_type].append(card)
         return list(melds.values()) # Return just the melds, not their type names
+    @classmethod
+    def get_cards_by_meld(cls, cards, meld_type) -> typing.List['Card']:
+        matches = []
+        for card in cards:
+            if meld_type == cls.get_card_meld_type(card):
+                matches.append(card)
+        return matches
 
 
 class CardGroup():
@@ -297,6 +304,8 @@ class CardGroup():
         return Card.get_wilds(cards = self.cards)
     def count_wilds(self) -> int:
         return Card.count_wilds(self.cards)
+    def get_cards_by_meld(self, meld_type) -> typing.List['Card']:
+        return Meld.get_cards_by_meld(self.cards, meld_type)
     def count_melds(self, method=None, exclude_wilds=False) -> int:
         if method is None:
             method = Modifiers.meld_method

@@ -50,7 +50,9 @@ class Strategy(SimpleNamespace):
             desirability = 8000
         elif player.get_area("complete").includes_meld_type(card.get_meld_type(), method = cardtable.Meld.RANK):
             desirability = 7000 + card_points
-        # TODO If have pair (2)
+        # If have at least a pair (2)
+        elif len(player.get_hand().get_cards_by_meld(card.get_meld_type)) >= 2:
+            desirability = 1000 + card_points
         else:
             desirability = card_points #TODO how to take into account NOT wanting high value cards near the end?
 
