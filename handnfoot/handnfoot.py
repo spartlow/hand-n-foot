@@ -222,6 +222,7 @@ class HNFGame():
         # add to down area melds and complete piles
         keep_playing = True
         while keep_playing:
+            # TODO track what cards can be laid down, but don't move them yet. Have temp hand that doesn't include those??
             if not player.hnf_is_down:
                 # TODO combine with below?
                 if self.can_lay_down(player):
