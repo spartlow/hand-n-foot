@@ -354,7 +354,10 @@ class HNFGame():
             if pile is None and len(fan.cards) >= MIN_PILE_SIZE:
                 pile = cardtable.Pile()
                 pile.face_up = True
-                pile.hnf_clean = True # TODO if has wildcards mark dirty
+                if pile.count_wilds() == 0:
+                    pile.hnf_pure = True
+                else:
+                    pile.hnf_pure = False
                 complete_area.append(pile)
             if pile is not None:
                 logging.debug(f"Player {player.name} added {cardtable.cards_to_str(fan.cards)} to a pile")
