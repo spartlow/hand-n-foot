@@ -291,8 +291,14 @@ class HNFGame():
             # make piles?
             # Discard
             if len(hand) > 0:
-                self.discard(player)
-                keep_playing = False
+                # Enforce rule: disallow discarding that would end the final round
+                # when the rules forbid discarding to end the last round.
+                if len(hand) == 1 and len(foot) == 0 and self.round == 4 and not self.rules.allow_discard_to_end_last_round:
+                    logging.debug(f"Player {player.name} would discard last card to end final round; discard not allowed by rules. Skipping discard.")
+                    keep_playing = False
+                else:
+                    self.discard(player)
+                    keep_playing = False
             if len(hand) == 0:
                 if len(foot) == 0:
                     logging.debug(f"Player {player.name} ends the round!")
