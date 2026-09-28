@@ -138,7 +138,7 @@ class HNFGame():
             c = group.cards
         elif isinstance(group, cardtable.Meld):
             c = list(group)
-        elif isinstance(group, 'list'):
+        elif isinstance(group, list):
             c = group
         else:
             raise TypeError("Unexpected get_points type: "+type(group))
@@ -219,73 +219,75 @@ class HNFGame():
         foot = player.get_foot()
         # draw
         self.draw(player)
-        # add to down area melds and complete piles
         keep_playing = True
         while keep_playing:
-            # TODO track what cards can be laid down, but don't move them yet. Have temp hand that doesn't include those??
+            # Queue up all possible lay down actions
+            laydown_queue = []
+            laydown_points = 0
+            wilds = hand.get_wilds()[:]
             if not player.hnf_is_down:
-                # TODO combine with below?
-                if self.can_lay_down(player):
-                    melds = self.get_ready_melds(player)
-                    for meld in melds:
-                        self.lay_down_meld(player, meld = meld)
+                # Gather all ready melds (exclude wilds)
+                melds = self.get_ready_melds(player)
+                for meld in melds:
+                    laydown_queue.append(('meld', meld))
+                    laydown_points += self.get_points(meld)
             else:
-                melds = hand.get_melds(method = cardtable.Meld.RANK, exclude_wilds = True)
+                melds = hand.get_melds(method=cardtable.Meld.RANK, exclude_wilds=True)
                 singleton_cnt = 0
                 pair_cnt = 0
+                pair_melds = []
                 for meld in melds:
-                    #print(str(len(meld))+" "+meld.get_type())
-                    if len(meld)>=3 or player.get_area("down").includes_meld_type(meld.get_type(), method = method) \
-                            or player.get_area("complete").includes_meld_type(meld.get_type(), method = method):
-                        self.lay_down_meld(player, meld = meld)
+                    if len(meld) >= 3 or player.get_area("down").includes_meld_type(meld.get_type(), method=method) \
+                            or player.get_area("complete").includes_meld_type(meld.get_type(), method=method):
+                        laydown_queue.append(('meld', meld))
+                        laydown_points += self.get_points(meld)
                     else:
                         if len(meld) == 1:
                             singleton_cnt += 1
                         elif len(meld) == 2:
                             pair_cnt += 1
+                            pair_melds.append(meld)
                         else:
-                            raise ValueError("Unexpected leftover meld length of "+len(meld))
-                    #    print(player.get_area("down").includes_meld_type(meld.get_type(), method = method))
-                #TODO play wild cards?
-                wilds = hand.get_wilds()
-                if len(wilds) > 0:
-                    if len(wilds) >= pair_cnt and singleton_cnt <= 1:
-                        logging.debug(f"Player {player.name} laying down with wilds.")
-                        melds = hand.get_melds(cardtable.Meld.RANK, exclude_wilds = True)
-                        for meld in melds:
-                            if len(meld) == 1:
-                                continue
-                            if len(meld) != 2:
-                                raise ValueError(f"Unexpected pair meld length of {len(meld)}")
-                            meld.append(wilds.pop()) # TODO use highest value wild
-                            self.lay_down_meld(player, meld = meld)
-                            pair_cnt -= 1
-                    if len(wilds) > 0 and pair_cnt == 0 and singleton_cnt <= 1:
-                        logging.debug(f"Player {player.name} adding wilds.")
-                        # Add wilds to fans
-                        down_groups = player.get_area(name = "down").get_groups()
-                        down_groups.sort(key=len, reverse=True) # sort largest to smallest
-                        # Add to fans that are already dirty
-                        for group in down_groups:
-                            meld_type = group.cards[0].get_meld_type()
-                            if group.count_wilds() == 0:
-                                continue # Don't dirty a clean pile, yet
-                            for _ in range(min(len(wilds), HNFGame.group_wild_deficit(group))):
-                                self.lay_down_card_by_meld(player, wilds.pop(), meld_type = meld_type)
+                            raise ValueError("Unexpected leftover meld length of "+str(len(meld)))
+                # Queue wilds for pairs
+                if len(wilds) >= pair_cnt and singleton_cnt <= 1:
+                    for meld in pair_melds:
+                        if len(wilds) == 0:
+                            break
+                        meld.append(wilds.pop())
+                        laydown_queue.append(('meld', meld))
+                        laydown_points += self.get_points(meld)
+                # Queue wilds for dirty fans
+                if len(wilds) > 0 and pair_cnt == 0 and singleton_cnt <= 1:
+                    down_groups = player.get_area(name="down").get_groups()
+                    down_groups.sort(key=len, reverse=True)
+                    for group in down_groups:
+                        meld_type = group.cards[0].get_meld_type()
+                        if group.count_wilds() == 0:
+                            continue
+                        for _ in range(min(len(wilds), HNFGame.group_wild_deficit(group))):
                             if len(wilds) == 0:
                                 break
-                        # Add to any fan
-                        down_groups = player.get_area(name = "down").get_groups()
-                        down_groups.sort(key=len) # sort smallest to largest (to preserve clean piles)
-                        for group in down_groups:
-                            meld_type = group.cards[0].get_meld_type()
-                            for _ in range(min(len(wilds), HNFGame.group_wild_deficit(group))):
-                                self.lay_down_card_by_meld(player, wilds.pop(), meld_type = meld_type)
+                            laydown_queue.append(('wild', wilds.pop(), meld_type))
+                            # Assume wild is worth its card points
+                            laydown_points += self.get_card_points(laydown_queue[-1][1])
+                    down_groups = player.get_area(name="down").get_groups()
+                    down_groups.sort(key=len)
+                    for group in down_groups:
+                        meld_type = group.cards[0].get_meld_type()
+                        for _ in range(min(len(wilds), HNFGame.group_wild_deficit(group))):
                             if len(wilds) == 0:
                                 break
-
-                # TODO for each meld > 3 and if down area.includes_meld then play
-                pass #TODO
+                            laydown_queue.append(('wild', wilds.pop(), meld_type))
+                            laydown_points += self.get_card_points(laydown_queue[-1][1])
+            # Only lay down if total points meets round requirement
+            min_points = HNFRules.round_starting_points(self.round)
+            if laydown_points >= min_points:
+                for action in laydown_queue:
+                    if action[0] == 'meld':
+                        self.lay_down_meld(player, meld=action[1])
+                    elif action[0] == 'wild':
+                        self.lay_down_card_by_meld(player, action[1], meld_type=action[2])
             # make piles?
             # Discard
             if len(hand) > 0:

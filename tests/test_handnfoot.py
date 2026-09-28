@@ -58,5 +58,36 @@ def test_sort_by_desirability():
     print(sorted_cards)
     assert cardtable.cards_to_str(sorted_cards) == cardtable.cards_to_str(expected)
 
+def test_round_starting_points():
+    assert handnfoot.HNFRules.round_starting_points(1) == 50
+    assert handnfoot.HNFRules.round_starting_points(2) == 75
+    assert handnfoot.HNFRules.round_starting_points(3) == 100
+    assert handnfoot.HNFRules.round_starting_points(4) == 150
+
+
+def test_get_points_for_groups():
+    game = handnfoot.HNFGame()
+    cp = cardtable.Card.parse
+
+    assert game.get_points([cp("3H"), cp("5D"), cp("AH")]) == -275
+    assert game.get_points(cardtable.Meld(cards=[cp("KH"), cp("QH"), cp("JH")])) == 30
+
+
+def test_setup_and_round_setup_for_two_players():
+    game = handnfoot.HNFGame()
+    players = [cardtable.Player("A"), cardtable.Player("B")]
+    for player in players:
+        game.add_player(player, handnfoot.Strategy())
+
+    game.game_setup()
+    game.round_setup()
+
+    assert len(game.table.get_area("draw").groups) == 2
+    for player in players:
+        assert len(player.get_hand().cards) == 11
+        assert len(player.get_foot().cards) == 11
+        assert len(player.get_area("complete").groups) == 0
+        assert len(player.get_area("down").groups) == 0
+
 if __name__ == "__main__":
     pytest.main([__file__])
